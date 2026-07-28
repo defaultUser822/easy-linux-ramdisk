@@ -4629,6 +4629,7 @@ dependencies = [
 name = "swift-disk"
 version = "0.1.0"
 dependencies = [
+ "nix",
  "slint",
  "slint-build",
 ]
