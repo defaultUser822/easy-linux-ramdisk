@@ -1,18 +1,27 @@
-import { Button, VerticalBox } from "std-widgets.slint";
+import { Button, VerticalBox, SpinBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
-	in-out property <int> num: 67;
-	callback more();
+	in-out property <int> num: 2;
+	in-out property <int> step: 2;
+	callback more(int);
 	VerticalBox {
 		Text {
 			text: "Counter: \{root.num}";
 		}
-		
+
 		Button {
-			text: "MORE!";
+			text: "MUCH MORE!";
 			clicked => {
-				root.more();
+				root.more(root.step);
 			}
+		}
+
+		SpinBox {
+            minimum: 1;
+            value: 2;
+            edited => {
+                root.step = self.value;
+            }
 		}
 	}
 }
