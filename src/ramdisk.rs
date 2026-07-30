@@ -3,6 +3,7 @@ use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
+#[allow(unused)]
 pub struct Mount {
     specifier: String,
     mount_point: String,
