@@ -7,9 +7,9 @@ pub struct Mount {
     specifier: String,
     mount_point: String,
     filesystem_type: String, // TODO: Change this field to be an enum of all of the possible filesystems.
-    mount_options: String,   // TODO: Change this to a `Vec<String>
-    dump_frequency: String,  // TODO: Change this field to a number
-    fsck_order: String,      // TODO: Change this field to a number
+    mount_options: String,
+    dump_frequency: String,
+    fsck_order: String,
 }
 
 fn get_mounts() -> io::Result<Vec<Mount>> {
