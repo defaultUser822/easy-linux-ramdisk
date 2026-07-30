@@ -1,8 +1,6 @@
 use nix::mount::{MsFlags, mount, umount};
 use std::fs::{self, File};
-use std::io::{BufRead, BufReader};
-
-// TODO: Remove `.unwrap`
+use std::io::{self, BufRead, BufReader};
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
 pub struct Mount {
@@ -14,14 +12,14 @@ pub struct Mount {
     fsck_order: String,      // TODO: Change this field to a number
 }
 
-fn get_mounts() -> Vec<Mount> {
-    let file = File::open("/proc/mounts").unwrap();
+fn get_mounts() -> io::Result<Vec<Mount>> {
+    let file = File::open("/proc/mounts")?;
     let reader = BufReader::new(file);
     let lines = reader.lines();
     let mut result: Vec<Mount> = Vec::new();
 
     for line in lines {
-        let line = line.unwrap();
+        let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
         result.push(Mount {
             specifier: processed_line[0].to_string(),
@@ -32,11 +30,11 @@ fn get_mounts() -> Vec<Mount> {
             fsck_order: processed_line[5].to_string(),
         });
     }
-    result
+    Ok(result)
 }
 
-pub fn get_tmpfs_mounts() -> Vec<Mount> {
-    let mounts = get_mounts();
+pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
+    let mounts = get_mounts()?;
     let mut result: Vec<Mount> = Vec::new();
 
     for mount in mounts {
@@ -45,13 +43,13 @@ pub fn get_tmpfs_mounts() -> Vec<Mount> {
         }
     }
 
-    result
+    Ok(result)
 }
 
-pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> nix::Result<Mount> {
+pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> io::Result<Mount> {
     let location = "/home/ahmed/ramdisk";
-    if !fs::exists(location).unwrap() {
-        fs::create_dir("/home/ahmed/ramdisk").unwrap();
+    if !fs::exists(location)? {
+        fs::create_dir("/home/ahmed/ramdisk")?;
     }
     let mode = 0744;
 
@@ -74,7 +72,7 @@ pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> nix::Result<Mount> {
     })
 }
 
-pub fn remove_ramdisk(device: Mount) -> nix::Result<()> {
+pub fn remove_ramdisk(device: Mount) -> io::Result<()> {
     umount(device.mount_point.as_str())?;
     Ok(())
 }
@@ -84,16 +82,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn only_shows_tmpfs_mounts() {
-        let mounts = get_tmpfs_mounts();
+    fn only_shows_tmpfs_mounts() -> io::Result<()> {
+        let mounts = get_tmpfs_mounts()?;
 
         for mount in mounts {
             assert_eq!(mount.filesystem_type, "tmpfs");
         }
+
+        Ok(())
     }
 
     #[test]
-    fn mounts_correctly() -> nix::Result<()> {
+    fn mounts_correctly() -> io::Result<()> {
         let device = create_ramdisk(512, 1000, 1000)?;
         remove_ramdisk(device)?;
 
