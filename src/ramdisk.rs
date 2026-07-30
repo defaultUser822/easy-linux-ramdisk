@@ -49,7 +49,7 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
 pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> io::Result<Mount> {
     let location = "/home/ahmed/ramdisk";
     if !fs::exists(location)? {
-        fs::create_dir("/home/ahmed/ramdisk")?;
+        fs::create_dir(location)?;
     }
     let mode = 0744;
 
