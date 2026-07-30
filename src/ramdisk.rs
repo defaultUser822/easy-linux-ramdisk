@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = create_ramdisk("/home/ahmed/ramdisk", 512, 1000, 1000)?;
+        let device = create_ramdisk("/home/ahmed/ramdisk", 512, 1000, 1000)?; // TODO: Use a better location.
         remove_ramdisk(device)?;
 
         Ok(())
