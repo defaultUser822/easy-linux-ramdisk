@@ -1,4 +1,5 @@
-use std::fs::File;
+use nix::mount::{MsFlags, mount, umount};
+use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 
 // TODO: Remove `.unwrap`
@@ -47,6 +48,37 @@ pub fn get_tmpfs_mounts() -> Vec<Mount> {
     result
 }
 
+pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> nix::Result<Mount> {
+    let location = "/home/ahmed/ramdisk";
+    if !fs::exists(location).unwrap() {
+        fs::create_dir("/home/ahmed/ramdisk").unwrap();
+    }
+    let mode = 0744;
+
+    let opts = format!("size={size},uid={uid},gid={gid},mode={mode}"); // I used an LLM for the mount options here
+    let specifier = "tmpfs";
+    mount(
+        Some(specifier),
+        location,
+        Some(specifier),
+        MsFlags::MS_NODEV,
+        Some(opts.as_str()), // Since I didn't know about `.as_str()`, I used an LLM for this too.
+    )?;
+    Ok(Mount {
+        specifier: specifier.to_string(),
+        mount_point: location.to_string(),
+        filesystem_type: specifier.to_string(),
+        mount_options: opts,
+        dump_frequency: "0".to_string(),
+        fsck_order: "0".to_string(),
+    })
+}
+
+pub fn remove_ramdisk(device: Mount) -> nix::Result<()> {
+    umount(device.mount_point.as_str())?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -58,5 +90,13 @@ mod tests {
         for mount in mounts {
             assert_eq!(mount.filesystem_type, "tmpfs");
         }
+    }
+
+    #[test]
+    fn mounts_correctly() -> nix::Result<()> {
+        let device = create_ramdisk(512, 1000, 1000)?;
+        remove_ramdisk(device)?;
+
+        Ok(())
     }
 }
