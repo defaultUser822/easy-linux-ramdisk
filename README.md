@@ -9,8 +9,7 @@ A graphical program that lets the user create ramdisk devices on Linux.
     - [ ] Escalate privelleges somehow to allow the mounting of new filesystems.
     - [x] Use the nix crate to mount a new tmpfs file system
   - [x] Ability to remove a ramdisk that was created.
-  - [ ] Have a default folder that the program creates under /home/USERNAME
-  - [ ] Handle a variety of errors when accessing the specified folder, especially permission errors.
+  - [x] Error proagation.
 - [ ] Have an intuitive and useful GUI.
   - [ ] Complete decoupling of the gui from the core library.
   - [ ] Let the users choose the size of the ramdisk they want out of presets.
