@@ -46,8 +46,7 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
     Ok(result)
 }
 
-pub fn create_ramdisk(size: u32, uid: u32, gid: u32) -> io::Result<Mount> {
-    let location = "/home/ahmed/ramdisk";
+pub fn create_ramdisk(location: &str, size: u32, uid: u32, gid: u32) -> io::Result<Mount> {
     if !fs::exists(location)? {
         fs::create_dir(location)?;
     }
@@ -94,7 +93,7 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = create_ramdisk(512, 1000, 1000)?;
+        let device = create_ramdisk("/home/ahmed/ramdisk", 512, 1000, 1000)?;
         remove_ramdisk(device)?;
 
         Ok(())
