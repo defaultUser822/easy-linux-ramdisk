@@ -81,7 +81,7 @@ pub fn create_ramdisk(
         DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
     };
 
-    let opts = format!("size={size},uid={uid},gid={gid},mode={0744}"); // I used an LLM for the mount options here
+    let opts = format!("size={size},uid={uid},gid={gid},mode=0744"); // I used an LLM for the mount options here
     let specifier = "tmpfs";
     mount(
         Some(specifier),
