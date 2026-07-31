@@ -17,7 +17,7 @@ pub struct MountInfo {
     free_space: u64,
 }
 
-pub fn get_stats(filesystem: Mount) -> io::Result<MountInfo> {
+pub fn get_stats(filesystem: &Mount) -> io::Result<MountInfo> {
     let stats = statvfs(filesystem.mount_point.as_str())?;
     let block_size = stats.fragment_size();
 
@@ -113,7 +113,7 @@ mod tests {
     fn gets_file_stats_correctly() {
         let mebibyte: u64 = 1048576;
         let device = create_ramdisk("/home/ahmed/ramdisk", mebibyte as u32, 1000, 1000).unwrap();
-        let device_stats = get_stats(device).unwrap();
+        let device_stats = get_stats(&device).unwrap();
 
         assert_eq!(device_stats.total_space, mebibyte);
     }
