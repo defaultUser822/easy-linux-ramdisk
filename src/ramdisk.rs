@@ -80,7 +80,7 @@ pub fn create_ramdisk(location: &str, size: u32, uid: u32, gid: u32) -> io::Resu
     })
 }
 
-pub fn remove_ramdisk(device: Mount) -> io::Result<()> {
+pub fn remove_ramdisk(device: &Mount) -> io::Result<()> {
     umount(device.mount_point.as_str())?;
     Ok(())
 }
@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn mounts_correctly() -> io::Result<()> {
         let device = create_ramdisk("/home/ahmed/ramdisk2", 512, 1000, 1000)?;
-        remove_ramdisk(device)?;
+        remove_ramdisk(&device)?;
 
         Ok(())
     }
