@@ -77,7 +77,7 @@ pub fn create_ramdisk(
     let size = match size {
         DataStorageUnit::Byte(bytes) => format!("{bytes}"),
         DataStorageUnit::Kibibyte(kib) => format!("{kib}k"),
-        DataStorageUnit::Mebibyte(mib) => format!("{mib}m"),
+        DataStorageUnit::Mebibyte(meb) => format!("{meb}m"),
         DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
     };
 
