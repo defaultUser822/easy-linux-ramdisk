@@ -114,6 +114,7 @@ mod tests {
         let mebibyte: u64 = 1048576;
         let device = create_ramdisk("/home/ahmed/ramdisk", mebibyte as u32, 1000, 1000).unwrap();
         let device_stats = get_stats(&device).unwrap();
+        let _ = remove_ramdisk(&device).unwrap();
 
         assert_eq!(device_stats.total_space, mebibyte);
     }
