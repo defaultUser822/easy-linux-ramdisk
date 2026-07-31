@@ -76,10 +76,10 @@ pub fn create_ramdisk(
     }
     let mode = 0744;
     let size = match size {
-        DataStorageUnit::Byte(bytes) => bytes,
-        DataStorageUnit::Kibibyte(kib) => kib * 1024,
-        DataStorageUnit::Mebibyte(mib) => mib * const { 1024 ^ 2 },
-        DataStorageUnit::Gibibyte(gib) => gib * const { 1024 ^ 3 },
+        DataStorageUnit::Byte(bytes) => format!("{bytes}"),
+        DataStorageUnit::Kibibyte(kib) => format!("{kib}k"),
+        DataStorageUnit::Mebibyte(mib) => format!("{mib}m"),
+        DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
     };
 
     let opts = format!("size={size},uid={uid},gid={gid},mode={mode}"); // I used an LLM for the mount options here
