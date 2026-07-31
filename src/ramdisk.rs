@@ -1,4 +1,5 @@
 use nix::mount::{MsFlags, mount, umount};
+use nix::sys::statvfs::statvfs;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
@@ -8,6 +9,22 @@ pub struct Mount {
     mount_point: String,
     filesystem_type: String, // TODO: Change this field to be an enum of all of the possible filesystems.
     mount_options: String,
+}
+
+#[allow(unused)]
+pub struct MountInfo {
+    total_space: u64,
+    free_space: u64,
+}
+
+pub fn get_stats(filesystem: Mount) -> io::Result<MountInfo> {
+    let stats = statvfs(filesystem.mount_point.as_str())?;
+    let block_size = stats.fragment_size();
+
+    Ok(MountInfo {
+        total_space: block_size * stats.blocks(),
+        free_space: block_size * stats.blocks_free(),
+    })
 }
 
 fn get_mounts() -> io::Result<Vec<Mount>> {
@@ -68,6 +85,7 @@ pub fn remove_ramdisk(device: Mount) -> io::Result<()> {
     Ok(())
 }
 
+// TODO: Use a better location for the tests that use a location
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,9 +103,18 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = create_ramdisk("/home/ahmed/ramdisk", 512, 1000, 1000)?; // TODO: Use a better location.
+        let device = create_ramdisk("/home/ahmed/ramdisk2", 512, 1000, 1000)?;
         remove_ramdisk(device)?;
 
         Ok(())
+    }
+
+    #[test]
+    fn gets_file_stats_correctly() {
+        let mebibyte: u64 = 1048576;
+        let device = create_ramdisk("/home/ahmed/ramdisk", mebibyte as u32, 1000, 1000).unwrap();
+        let device_stats = get_stats(device).unwrap();
+
+        assert_eq!(device_stats.total_space, mebibyte);
     }
 }
