@@ -74,7 +74,6 @@ pub fn create_ramdisk(
     if !fs::exists(location)? {
         fs::create_dir(location)?;
     }
-    let mode = 0744;
     let size = match size {
         DataStorageUnit::Byte(bytes) => format!("{bytes}"),
         DataStorageUnit::Kibibyte(kib) => format!("{kib}k"),
@@ -82,7 +81,7 @@ pub fn create_ramdisk(
         DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
     };
 
-    let opts = format!("size={size},uid={uid},gid={gid},mode={mode}"); // I used an LLM for the mount options here
+    let opts = format!("size={size},uid={uid},gid={gid},mode={0744}"); // I used an LLM for the mount options here
     let specifier = "tmpfs";
     mount(
         Some(specifier),
