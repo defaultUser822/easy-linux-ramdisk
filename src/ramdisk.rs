@@ -7,7 +7,7 @@ use std::io::{self, BufRead, BufReader};
 #[allow(unused)]
 pub struct Mount {
     mount_point: String,
-    filesystem_type: String, // TODO: Change this field to be an enum of all of the possible filesystems.
+    filesystem_type: String,
     mount_options: String,
 }
 
