@@ -3,6 +3,13 @@ use nix::sys::statvfs::statvfs;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
+pub enum DataStorageUnit {
+    Byte(u64),
+    Kibibyte(u64),
+    Mebibyte(u64),
+    Gibibyte(u64),
+}
+
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
 #[allow(unused)]
 pub struct Mount {
@@ -58,11 +65,22 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
     Ok(result)
 }
 
-pub fn create_ramdisk(location: &str, size: u32, uid: u32, gid: u32) -> io::Result<Mount> {
+pub fn create_ramdisk(
+    location: &str,
+    size: DataStorageUnit,
+    uid: u32,
+    gid: u32,
+) -> io::Result<Mount> {
     if !fs::exists(location)? {
         fs::create_dir(location)?;
     }
     let mode = 0744;
+    let size = match size {
+        DataStorageUnit::Byte(bytes) => bytes,
+        DataStorageUnit::Kibibyte(kib) => kib * 1024,
+        DataStorageUnit::Mebibyte(mib) => mib * const { 1024 ^ 2 },
+        DataStorageUnit::Gibibyte(gib) => gib * const { 1024 ^ 3 },
+    };
 
     let opts = format!("size={size},uid={uid},gid={gid},mode={mode}"); // I used an LLM for the mount options here
     let specifier = "tmpfs";
@@ -103,7 +121,12 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = create_ramdisk("/home/ahmed/ramdisk2", 512, 1000, 1000)?;
+        let device = create_ramdisk(
+            "/home/ahmed/ramdisk2",
+            DataStorageUnit::Mebibyte(1),
+            1000,
+            1000,
+        )?;
         remove_ramdisk(&device)?;
 
         Ok(())
@@ -111,11 +134,16 @@ mod tests {
 
     #[test]
     fn gets_file_stats_correctly() {
-        let mebibyte: u64 = 1048576;
-        let device = create_ramdisk("/home/ahmed/ramdisk", mebibyte as u32, 1000, 1000).unwrap();
+        let device = create_ramdisk(
+            "/home/ahmed/ramdisk",
+            DataStorageUnit::Mebibyte(1),
+            1000,
+            1000,
+        )
+        .unwrap();
         let device_stats = get_stats(&device).unwrap();
         let _ = remove_ramdisk(&device).unwrap();
 
-        assert_eq!(device_stats.total_space, mebibyte);
+        assert_eq!(device_stats.total_space, 1048576);
     }
 }
