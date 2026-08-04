@@ -9,3 +9,7 @@ slint = "1.17.1"
 
 [build-dependencies]
 slint-build = "1.17.1"
+
+[profile.dev-sccache]
+inherits = "dev"
+incremental = false
