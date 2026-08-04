@@ -34,7 +34,7 @@ pub fn get_stats(filesystem: &Mount) -> io::Result<MountInfo> {
     })
 }
 
-fn get_mounts() -> io::Result<Vec<Mount>> {
+pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
     let file = File::open("/proc/mounts")?;
     let reader = BufReader::new(file);
     let lines = reader.lines();
@@ -43,22 +43,12 @@ fn get_mounts() -> io::Result<Vec<Mount>> {
     for line in lines {
         let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
-        result.push(Mount {
-            mount_options: processed_line[1].to_string(),
-            filesystem_type: processed_line[2].to_string(),
-            mount_point: processed_line[3].to_string(),
-        });
-    }
-    Ok(result)
-}
-
-pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
-    let mounts = get_mounts()?;
-    let mut result: Vec<Mount> = Vec::new();
-
-    for mount in mounts {
-        if mount.filesystem_type == "tmpfs" {
-            result.push(mount);
+        if processed_line[2] == "tmps" {
+            result.push(Mount {
+                mount_options: processed_line[1].to_string(),
+                filesystem_type: processed_line[2].to_string(),
+                mount_point: processed_line[3].to_string(),
+            });
         }
     }
 
