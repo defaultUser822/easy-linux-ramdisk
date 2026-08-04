@@ -12,18 +12,18 @@ pub enum DataStorageUnit {
     Gibibyte(u64),
 }
 
+#[allow(unused)]
+pub struct MountInfo {
+    total_space: u64,
+    free_space: u64,
+}
+
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
 #[allow(unused)]
 pub struct RamdiskMount {
     mount_point: String,
     filesystem_type: String,
     mount_options: String,
-}
-
-#[allow(unused)]
-pub struct MountInfo {
-    total_space: u64,
-    free_space: u64,
 }
 
 impl RamdiskMount {
