@@ -13,7 +13,6 @@ pub enum DataStorageUnit {
 }
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
-// TODO: Put the `get_stats()`, `create_ramdisk()`, and `remove_ramdisk()` functions in an `impl` block that belongs to this struct
 #[allow(unused)]
 pub struct RamdiskMount {
     mount_point: String,
@@ -27,14 +26,53 @@ pub struct MountInfo {
     free_space: u64,
 }
 
-pub fn get_stats(filesystem: &RamdiskMount) -> io::Result<MountInfo> {
-    let stats = statvfs(filesystem.mount_point.as_str())?;
-    let block_size = stats.fragment_size();
+impl RamdiskMount {
+    pub fn create_ramdisk(
+        location: &str,
+        size: DataStorageUnit,
+        uid: u32,
+        gid: u32,
+    ) -> io::Result<RamdiskMount> {
+        if !fs::exists(location)? {
+            fs::create_dir(location)?;
+        }
+        let size = match size {
+            DataStorageUnit::Byte(bytes) => format!("{bytes}"),
+            DataStorageUnit::Kibibyte(kib) => format!("{kib}k"),
+            DataStorageUnit::Mebibyte(meb) => format!("{meb}m"),
+            DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
+        };
 
-    Ok(MountInfo {
-        total_space: block_size * stats.blocks(),
-        free_space: block_size * stats.blocks_free(),
-    })
+        let opts = format!("size={size},uid={uid},gid={gid},mode=0744"); // I used an LLM for the mount options here
+        let specifier = "tmpfs";
+        mount(
+            Some(specifier),
+            location,
+            Some(specifier),
+            MsFlags::MS_NODEV,
+            Some(opts.as_str()), // Since I didn't know about `.as_str()`, I used an LLM for this too.
+        )?;
+        Ok(RamdiskMount {
+            mount_point: location.to_string(),
+            filesystem_type: specifier.to_string(),
+            mount_options: opts,
+        })
+    }
+
+    pub fn get_stats(&self) -> io::Result<MountInfo> {
+        let stats = statvfs(self.mount_point.as_str())?;
+        let block_size = stats.fragment_size();
+
+        Ok(MountInfo {
+            total_space: block_size * stats.blocks(),
+            free_space: block_size * stats.blocks_free(),
+        })
+    }
+
+    pub fn remove_ramdisk(&self) -> io::Result<()> {
+        umount(self.mount_point.as_str())?;
+        Ok(())
+    }
 }
 
 pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
@@ -58,43 +96,6 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
     Ok(result)
 }
 
-pub fn create_ramdisk(
-    location: &str,
-    size: DataStorageUnit,
-    uid: u32,
-    gid: u32,
-) -> io::Result<RamdiskMount> {
-    if !fs::exists(location)? {
-        fs::create_dir(location)?;
-    }
-    let size = match size {
-        DataStorageUnit::Byte(bytes) => format!("{bytes}"),
-        DataStorageUnit::Kibibyte(kib) => format!("{kib}k"),
-        DataStorageUnit::Mebibyte(meb) => format!("{meb}m"),
-        DataStorageUnit::Gibibyte(gib) => format!("{gib}g"),
-    };
-
-    let opts = format!("size={size},uid={uid},gid={gid},mode=0744"); // I used an LLM for the mount options here
-    let specifier = "tmpfs";
-    mount(
-        Some(specifier),
-        location,
-        Some(specifier),
-        MsFlags::MS_NODEV,
-        Some(opts.as_str()), // Since I didn't know about `.as_str()`, I used an LLM for this too.
-    )?;
-    Ok(RamdiskMount {
-        mount_point: location.to_string(),
-        filesystem_type: specifier.to_string(),
-        mount_options: opts,
-    })
-}
-
-pub fn remove_ramdisk(device: &RamdiskMount) -> io::Result<()> {
-    umount(device.mount_point.as_str())?;
-    Ok(())
-}
-
 // TODO: Use a better location for the tests that use a location
 #[cfg(test)]
 mod tests {
@@ -113,28 +114,28 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = create_ramdisk(
+        let device = RamdiskMount::create_ramdisk(
             "/home/ahmed/ramdisk2",
             DataStorageUnit::Mebibyte(1),
             1000,
             1000,
         )?;
-        remove_ramdisk(&device)?;
+        device.remove_ramdisk()?;
 
         Ok(())
     }
 
     #[test]
     fn gets_file_stats_correctly() {
-        let device = create_ramdisk(
+        let device = RamdiskMount::create_ramdisk(
             "/home/ahmed/ramdisk",
             DataStorageUnit::Mebibyte(1),
             1000,
             1000,
         )
         .unwrap();
-        let device_stats = get_stats(&device).unwrap();
-        let _ = remove_ramdisk(&device).unwrap();
+        let device_stats = device.get_stats().unwrap();
+        let _ = device.remove_ramdisk().unwrap();
 
         assert_eq!(device_stats.total_space, 1048576);
     }
