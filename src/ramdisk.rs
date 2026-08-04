@@ -13,10 +13,9 @@ pub enum DataStorageUnit {
 }
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
-// TODO: Change the name of this struct to `RamdiskMount`
 // TODO: Put the `get_stats()`, `create_ramdisk()`, and `remove_ramdisk()` functions in an `impl` block that belongs to this struct
 #[allow(unused)]
-pub struct Mount {
+pub struct RamdiskMount {
     mount_point: String,
     filesystem_type: String,
     mount_options: String,
@@ -28,7 +27,7 @@ pub struct MountInfo {
     free_space: u64,
 }
 
-pub fn get_stats(filesystem: &Mount) -> io::Result<MountInfo> {
+pub fn get_stats(filesystem: &RamdiskMount) -> io::Result<MountInfo> {
     let stats = statvfs(filesystem.mount_point.as_str())?;
     let block_size = stats.fragment_size();
 
@@ -38,17 +37,17 @@ pub fn get_stats(filesystem: &Mount) -> io::Result<MountInfo> {
     })
 }
 
-pub fn get_tmpfs_mounts() -> io::Result<Vec<Mount>> {
+pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
     let file = File::open("/proc/mounts")?;
     let reader = BufReader::new(file);
     let lines = reader.lines();
-    let mut result: Vec<Mount> = Vec::new();
+    let mut result: Vec<RamdiskMount> = Vec::new();
 
     for line in lines {
         let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
         if processed_line[2] == "tmps" {
-            result.push(Mount {
+            result.push(RamdiskMount {
                 mount_options: processed_line[1].to_string(),
                 filesystem_type: processed_line[2].to_string(),
                 mount_point: processed_line[3].to_string(),
@@ -64,7 +63,7 @@ pub fn create_ramdisk(
     size: DataStorageUnit,
     uid: u32,
     gid: u32,
-) -> io::Result<Mount> {
+) -> io::Result<RamdiskMount> {
     if !fs::exists(location)? {
         fs::create_dir(location)?;
     }
@@ -84,14 +83,14 @@ pub fn create_ramdisk(
         MsFlags::MS_NODEV,
         Some(opts.as_str()), // Since I didn't know about `.as_str()`, I used an LLM for this too.
     )?;
-    Ok(Mount {
+    Ok(RamdiskMount {
         mount_point: location.to_string(),
         filesystem_type: specifier.to_string(),
         mount_options: opts,
     })
 }
 
-pub fn remove_ramdisk(device: &Mount) -> io::Result<()> {
+pub fn remove_ramdisk(device: &RamdiskMount) -> io::Result<()> {
     umount(device.mount_point.as_str())?;
     Ok(())
 }
