@@ -69,7 +69,7 @@ impl RamdiskMount {
         })
     }
 
-    pub fn remove_ramdisk(&self) -> io::Result<()> {
+    pub fn remove(&self) -> io::Result<()> {
         umount(self.mount_point.as_str())?;
         Ok(())
     }
@@ -120,7 +120,7 @@ mod tests {
             1000,
             1000,
         )?;
-        device.remove_ramdisk()?;
+        device.remove()?;
 
         Ok(())
     }
@@ -135,7 +135,7 @@ mod tests {
         )
         .unwrap();
         let device_stats = device.get_stats().unwrap();
-        let _ = device.remove_ramdisk().unwrap();
+        let _ = device.remove().unwrap();
 
         assert_eq!(device_stats.total_space, 1048576);
     }
