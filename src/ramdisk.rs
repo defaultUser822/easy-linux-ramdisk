@@ -1,17 +1,21 @@
+//! A module for creating and removing ramdisk devices that use the tmpfs filesystem
 use nix::mount::{MsFlags, mount, umount};
 use nix::sys::statvfs::statvfs;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
-// TODO: Write documentation
-
+/// Represents various data storage units
 pub enum DataStorageUnit {
     Byte(u64),
+    /// 1 Kibibyte = 1024 Bytes
     Kibibyte(u64),
+    /// 1 Mebibyte = 1024 Kibibytes
     Mebibyte(u64),
+    /// 1 Gebibyte = 1024 Mebibytes
     Gibibyte(u64),
 }
 
+/// Contains information about a mount
 #[allow(unused)]
 pub struct MountInfo {
     total_space: u64,
@@ -19,6 +23,7 @@ pub struct MountInfo {
 }
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
+/// Represents a mount that has the tmpfs filesystem.
 #[allow(unused)]
 pub struct RamdiskMount {
     mount_point: String,
@@ -27,6 +32,28 @@ pub struct RamdiskMount {
 }
 
 impl RamdiskMount {
+    /// Creates a new `Ramdisk` mount
+    ///
+    /// `location` is any path on the current computer. `/home/johndoe/ramdisk`, for example.
+    ///
+    /// `size` is self-explanatory.
+    ///
+    /// `uid` is the user id of the user that owns the ramdisk mount (e.g User ID `1000`)
+    ///
+    /// `gid` is the group id of the group that owns the ramdisk mount (e.g Group ID `1000`)
+    ///
+    /// # Example
+    /// ```
+    /// let ramdisk_drive = RamdiskMount::new(
+    ///     "/home/ahmed/ramdisk",
+    ///     DataStorageUnit::Gibibyte(1),
+    ///     1000,
+    ///     1000,
+    /// )?;
+    ///
+    /// let stats = device.get_stats()?;
+    /// ramdisk_drive.remove()?;
+    /// ```
     pub fn new(
         location: &str,
         size: DataStorageUnit,
@@ -59,6 +86,7 @@ impl RamdiskMount {
         })
     }
 
+    /// Returns a result that may contain various statistics about the current ramdisk
     pub fn get_stats(&self) -> io::Result<MountInfo> {
         let stats = statvfs(self.mount_point.as_str())?;
         let block_size = stats.fragment_size();
@@ -69,12 +97,14 @@ impl RamdiskMount {
         })
     }
 
+    /// Unmounts the current ramdisk
     pub fn remove(&self) -> io::Result<()> {
         umount(self.mount_point.as_str())?;
         Ok(())
     }
 }
 
+/// Returns a result that may all of ramdisk mounts on the current system that use the tmpfs filesystem
 pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
     let file = File::open("/proc/mounts")?;
     let reader = BufReader::new(file);
