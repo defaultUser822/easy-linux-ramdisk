@@ -27,7 +27,7 @@ pub struct RamdiskMount {
 }
 
 impl RamdiskMount {
-    pub fn create_ramdisk(
+    pub fn new(
         location: &str,
         size: DataStorageUnit,
         uid: u32,
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> io::Result<()> {
-        let device = RamdiskMount::create_ramdisk(
+        let device = RamdiskMount::new(
             "/home/ahmed/ramdisk2",
             DataStorageUnit::Mebibyte(1),
             1000,
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn gets_file_stats_correctly() {
-        let device = RamdiskMount::create_ramdisk(
+        let device = RamdiskMount::new(
             "/home/ahmed/ramdisk",
             DataStorageUnit::Mebibyte(1),
             1000,
