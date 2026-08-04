@@ -3,6 +3,8 @@ use nix::sys::statvfs::statvfs;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader};
 
+// TODO: Write documentation
+
 pub enum DataStorageUnit {
     Byte(u64),
     Kibibyte(u64),
@@ -11,6 +13,8 @@ pub enum DataStorageUnit {
 }
 
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
+// TODO: Change the name of this struct to `RamdiskMount`
+// TODO: Put the `get_stats()`, `create_ramdisk()`, and `remove_ramdisk()` functions in an `impl` block that belongs to this struct
 #[allow(unused)]
 pub struct Mount {
     mount_point: String,
