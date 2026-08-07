@@ -115,6 +115,10 @@ impl RamdiskMount {
         umount(self.mount_point.as_str())?;
         Ok(())
     }
+
+    pub fn mount_point(&self) -> &String {
+        &self.mount_point
+    }
 }
 
 impl std::fmt::Display for RamdiskMount {
