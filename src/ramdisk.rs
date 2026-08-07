@@ -25,7 +25,7 @@ pub struct MountInfo {
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
 /// Represents a mount that has the tmpfs filesystem.
 #[allow(unused)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RamdiskMount {
     mount_point: String,
     filesystem_type: String,
