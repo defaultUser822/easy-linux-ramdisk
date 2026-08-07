@@ -25,6 +25,7 @@ pub struct MountInfo {
 // The documentation for the `/etc/fstab` file (The `/proc/mounts` file uses the same format): https://man7.org/linux/man-pages/man5/fstab.5.html
 /// Represents a mount that has the tmpfs filesystem.
 #[allow(unused)]
+#[derive(Clone)]
 pub struct RamdiskMount {
     mount_point: String,
     filesystem_type: String,
@@ -101,6 +102,12 @@ impl RamdiskMount {
     pub fn remove(&self) -> io::Result<()> {
         umount(self.mount_point.as_str())?;
         Ok(())
+    }
+}
+
+impl std::fmt::Display for RamdiskMount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.mount_point)
     }
 }
 
