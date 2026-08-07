@@ -32,6 +32,18 @@ pub struct RamdiskMount {
     mount_options: String,
 }
 
+impl MountInfo {
+    /// Returns the total amount space of the mount in bytes
+    pub fn total_space(&self) -> DataStorageUnit {
+        DataStorageUnit::Byte(self.total_space)
+    }
+
+    /// Returns the amount of free space of the mount in bytes
+    pub fn free_space(&self) -> DataStorageUnit {
+        DataStorageUnit::Byte(self.free_space)
+    }
+}
+
 impl RamdiskMount {
     /// Creates a new `Ramdisk` mount
     ///
