@@ -123,6 +123,27 @@ impl std::fmt::Display for RamdiskMount {
     }
 }
 
+impl std::fmt::Display for DataStorageUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut output: String = "".to_string();
+        match self {
+            DataStorageUnit::Byte(bytes) => {
+                output.push_str(format!("{bytes} B").as_str());
+            }
+            DataStorageUnit::Kibibyte(kib) => {
+                output.push_str(format!("{kib} KiB").as_str());
+            }
+            DataStorageUnit::Mebibyte(meb) => {
+                output.push_str(format!("{meb} MeB").as_str());
+            }
+            DataStorageUnit::Gibibyte(gib) => {
+                output.push_str(format!("{gib} GiB").as_str());
+            }
+        };
+        f.write_str(output.as_str())
+    }
+}
+
 /// Returns a result that may all of ramdisk mounts on the current system that use the tmpfs filesystem
 pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
     let file = File::open("/proc/mounts")?;
