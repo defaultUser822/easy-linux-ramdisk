@@ -1,6 +1,6 @@
 pub mod ramdisk;
 
-use iced::widget::{Button, Column, Container, PickList, container, text};
+use iced::widget::{Button, Column, Container, container, pick_list, text};
 use iced::{Alignment, Length::Fill, Size, application};
 
 use crate::ramdisk::{MountInfo, RamdiskMount, get_tmpfs_mounts};
@@ -15,7 +15,7 @@ struct AppState {
 #[derive(Debug, Clone)]
 #[allow(unused)]
 enum Message {
-    DeviceSelected(&'static str), // TODO: Change `&'static str` to `RamdiskMount`
+    DeviceSelected(RamdiskMount),
     RemoveSelectedDrive,
 }
 
@@ -31,15 +31,16 @@ impl AppState {
 
     fn update(&mut self, message: Message) {
         match message {
-            Message::DeviceSelected(mount) => println!("{}", mount),
+            Message::DeviceSelected(mount) => {
+                self.selected_ramdisk = Some(mount);
+            }
             _ => println!("TODO"),
         }
     }
 
     fn view(&self) -> Container<'_, Message> {
-        let mount_list = ["/home/foolan/iced-docs", "/home/foolan/compilation-folder"];
-        // TODO: Change `&'static str` to `RamdiskMount`
-        let mounts_picklist = PickList::new(mount_list, Some(mount_list[0]), |device| {
+        let mount_list = self.ramdisk_mounts.clone();
+        let mounts_picklist = pick_list(mount_list, self.selected_ramdisk.clone(), |device| {
             Message::DeviceSelected(device)
         });
         let mut column = Column::with_children([mounts_picklist.into()]).spacing(15);
