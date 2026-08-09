@@ -159,7 +159,9 @@ pub fn get_tmpfs_mounts(hide_system_mounts: bool) -> io::Result<Vec<RamdiskMount
         let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
         if processed_line[2] == "tmpfs" {
-            if hide_system_mounts && !is_system_path(processed_line[1]) {
+            if hide_system_mounts && is_system_path(processed_line[1]) {
+                continue;
+            } else {
                 result.push(RamdiskMount {
                     mount_point: processed_line[1].to_string(),
                     filesystem_type: processed_line[2].to_string(),
