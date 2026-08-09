@@ -158,7 +158,7 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
     for line in lines {
         let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
-        if processed_line[2] == "tmps" {
+        if processed_line[2] == "tmpfs" {
             result.push(RamdiskMount {
                 mount_options: processed_line[1].to_string(),
                 filesystem_type: processed_line[2].to_string(),
