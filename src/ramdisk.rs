@@ -149,7 +149,7 @@ impl std::fmt::Display for DataStorageUnit {
 }
 
 /// Returns a result that may all of ramdisk mounts on the current system that use the tmpfs filesystem
-pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
+pub fn get_tmpfs_mounts(hide_system_mounts: bool) -> io::Result<Vec<RamdiskMount>> {
     let file = File::open("/proc/mounts")?;
     let reader = BufReader::new(file);
     let lines = reader.lines();
@@ -159,15 +159,26 @@ pub fn get_tmpfs_mounts() -> io::Result<Vec<RamdiskMount>> {
         let line = line?;
         let processed_line: Vec<&str> = line.split(' ').collect();
         if processed_line[2] == "tmpfs" {
-            result.push(RamdiskMount {
-                mount_point: processed_line[1].to_string(),
-                filesystem_type: processed_line[2].to_string(),
-                mount_options: processed_line[3].to_string(),
-            });
+            if hide_system_mounts && !is_system_path(processed_line[1]) {
+                result.push(RamdiskMount {
+                    mount_point: processed_line[1].to_string(),
+                    filesystem_type: processed_line[2].to_string(),
+                    mount_options: processed_line[3].to_string(),
+                });
+            }
         }
     }
 
     Ok(result)
+}
+
+fn is_system_path(path: &str) -> bool {
+    for system_path in ["/run", "/dev/shm", "/tmp", "/run"] {
+        if path.starts_with(system_path) {
+            return true;
+        }
+    }
+    false
 }
 
 // TODO: Use a better location for the tests that use a location
@@ -177,7 +188,7 @@ mod tests {
 
     #[test]
     fn only_shows_tmpfs_mounts() -> io::Result<()> {
-        let mounts = get_tmpfs_mounts()?;
+        let mounts = get_tmpfs_mounts(false)?;
 
         for mount in mounts {
             assert_eq!(mount.filesystem_type, "tmpfs");

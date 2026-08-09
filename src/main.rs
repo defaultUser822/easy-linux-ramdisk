@@ -23,7 +23,7 @@ impl AppState {
     #[allow(unused)]
     fn new() -> Self {
         Self {
-            ramdisk_mounts: get_tmpfs_mounts().unwrap(),
+            ramdisk_mounts: get_tmpfs_mounts(true).unwrap(),
             selected_ramdisk: None,
             selected_ramdisk_stats: None,
         }
