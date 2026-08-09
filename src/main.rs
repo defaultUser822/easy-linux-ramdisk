@@ -3,7 +3,7 @@ pub mod ramdisk;
 use iced::widget::{Button, Column, Container, container, pick_list, text};
 use iced::{Alignment, Length::Fill, Size, application};
 
-use crate::ramdisk::{MountInfo, RamdiskMount, get_tmpfs_mounts};
+use crate::ramdisk::{MountInfo, ramdisk_mount::RamdiskMount};
 
 #[allow(unused)]
 struct AppState {
@@ -23,7 +23,7 @@ impl AppState {
     #[allow(unused)]
     fn new() -> Self {
         Self {
-            ramdisk_mounts: get_tmpfs_mounts(true).unwrap(),
+            ramdisk_mounts: RamdiskMount::from_existing(true).unwrap(),
             selected_ramdisk: None,
             selected_ramdisk_stats: None,
         }
