@@ -42,11 +42,13 @@ impl AppState {
         let mount_list = self.ramdisk_mounts.clone();
         let mounts_picklist = pick_list(mount_list, self.selected_ramdisk.clone(), |device| {
             Message::DeviceSelected(device)
-        });
+        })
+        .width(Fill);
         let mut column = Column::with_children([mounts_picklist.into()]).spacing(15);
 
         match self.selected_ramdisk.as_ref() {
             Some(mount) => {
+                let mount_stats = mount.get_stats().unwrap();
                 column = column.push(
                     text(format!(
                         "Disk details for ramdisk device {}",
@@ -56,15 +58,12 @@ impl AppState {
                     .align_x(Alignment::Center),
                 );
                 column = column.push(
-                    text(format!(
-                        "Free space: {}",
-                        mount.get_stats().unwrap().total_space()
-                    ))
-                    .width(Fill)
-                    .align_x(Alignment::Center),
+                    text(format!("Total space: {}", mount_stats.total_space()))
+                        .width(Fill)
+                        .align_x(Alignment::Center),
                 );
                 column = column.push(
-                    text(format!("Free space: {}", 10))
+                    text(format!("Free space: {}", mount_stats.free_space()))
                         .width(Fill)
                         .align_x(Alignment::Center),
                 );
