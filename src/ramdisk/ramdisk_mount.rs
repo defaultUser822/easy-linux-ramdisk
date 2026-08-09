@@ -94,6 +94,8 @@ impl RamdiskMount {
     }
 
     /// Returns a result that may all of ramdisk mounts on the current system that use the tmpfs filesystem
+    ///
+    /// Setting the `hide_system_mounts` parameter to true hides all mounts that start with any of these paths: /run, /dev/shm, /tmp, and /run
     pub fn from_existing(hide_system_mounts: bool) -> io::Result<Vec<RamdiskMount>> {
         let file = File::open("/proc/mounts")?;
         let reader = BufReader::new(file);
