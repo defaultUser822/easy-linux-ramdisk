@@ -2,6 +2,7 @@
 pub mod ramdisk_mount;
 
 /// Represents various data storage units
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DataStorageUnit {
     Byte(u64),
     /// 1 Kibibyte = 1024 Bytes
@@ -52,12 +53,58 @@ impl std::fmt::Display for DataStorageUnit {
     }
 }
 
+impl DataStorageUnit {
+    pub fn auto_convert(self) -> Self {
+        todo!()
+    }
+
+    pub fn to_bytes(self) -> Self {
+        match self {
+            DataStorageUnit::Byte(_) => self,
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Byte(kib * 1024),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Byte(meb * 1024 * 1024),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Byte(gib * 1024 * 1024 * 1024),
+        }
+    }
+
+    pub fn to_kibibytes(self) -> Self {
+        match self {
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Kibibyte(bytes / 1024),
+            DataStorageUnit::Kibibyte(_) => self,
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Kibibyte(meb * 1024),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Kibibyte(gib * 1024 * 1024),
+        }
+    }
+
+    pub fn to_mebibytes(self) -> Self {
+        match self {
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Mebibyte(bytes / (1024 * 1024)),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Mebibyte(kib / 1024),
+            DataStorageUnit::Mebibyte(_) => self,
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Mebibyte(gib * 1024),
+        }
+    }
+
+    pub fn to_gibibytes(self) -> Self {
+        match self {
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Gibibyte(bytes / (1024 * 1024 * 1024)),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Gibibyte(kib / (1024 * 1024)),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Gibibyte(meb / 1024),
+            DataStorageUnit::Gibibyte(_) => self,
+        }
+    }
+}
+
 // TODO: Use a better location for the tests that use a location
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::ramdisk::ramdisk_mount::RamdiskMount;
 
-    use super::*;
+    const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024 * 1024 * 1024);
+    const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1024 * 1024);
+    const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1024);
+    const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1);
 
     #[test]
     fn only_shows_tmpfs_mounts() -> std::io::Result<()> {
@@ -96,5 +143,37 @@ mod tests {
         let _ = device.remove().unwrap();
 
         assert_eq!(device_stats.total_space, 1048576);
+    }
+
+    #[test]
+    fn converts_to_bytes() {
+        assert_eq!(GIB_IN_BYTES.to_bytes(), GIB_IN_BYTES);
+        assert_eq!(GIB_IN_KIB.to_bytes(), GIB_IN_BYTES);
+        assert_eq!(GIB_IN_MEB.to_bytes(), GIB_IN_BYTES);
+        assert_eq!(GIB.to_bytes(), GIB_IN_BYTES);
+    }
+
+    #[test]
+    fn converts_to_kibibytes() {
+        assert_eq!(GIB_IN_BYTES.to_kibibytes(), GIB_IN_KIB);
+        assert_eq!(GIB_IN_KIB.to_kibibytes(), GIB_IN_KIB);
+        assert_eq!(GIB_IN_MEB.to_kibibytes(), GIB_IN_KIB);
+        assert_eq!(GIB.to_kibibytes(), GIB_IN_KIB);
+    }
+
+    #[test]
+    fn converts_to_mebibytes() {
+        assert_eq!(GIB_IN_BYTES.to_mebibytes(), GIB_IN_MEB);
+        assert_eq!(GIB_IN_KIB.to_mebibytes(), GIB_IN_MEB);
+        assert_eq!(GIB_IN_MEB.to_mebibytes(), GIB_IN_MEB);
+        assert_eq!(GIB.to_mebibytes(), GIB_IN_MEB);
+    }
+
+    #[test]
+    fn converts_to_gibibytes() {
+        assert_eq!(GIB_IN_BYTES.to_gibibytes(), GIB);
+        assert_eq!(GIB_IN_KIB.to_gibibytes(), GIB);
+        assert_eq!(GIB_IN_MEB.to_gibibytes(), GIB);
+        assert_eq!(GIB.to_gibibytes(), GIB);
     }
 }
