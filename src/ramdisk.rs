@@ -4,20 +4,20 @@ pub mod ramdisk_mount;
 /// Represents various data storage units
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DataStorageUnit {
-    Byte(u64),
+    Byte(f64),
     /// 1 Kibibyte = 1024 Bytes
-    Kibibyte(u64),
+    Kibibyte(f64),
     /// 1 Mebibyte = 1024 Kibibytes
-    Mebibyte(u64),
+    Mebibyte(f64),
     /// 1 Gebibyte = 1024 Mebibytes
-    Gibibyte(u64),
+    Gibibyte(f64),
 }
 
 /// Contains information about a mount
 #[allow(unused)]
 pub struct MountInfo {
-    total_space: u64,
-    free_space: u64,
+    total_space: f64,
+    free_space: f64,
 }
 
 impl MountInfo {
@@ -61,35 +61,37 @@ impl DataStorageUnit {
     pub fn to_bytes(self) -> Self {
         match self {
             DataStorageUnit::Byte(_) => self,
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Byte(kib * 1024),
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Byte(meb * 1024 * 1024),
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Byte(gib * 1024 * 1024 * 1024),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Byte(kib * 1024.0),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Byte(meb * 1024.0 * 1024.0),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Byte(gib * 1024.0 * 1024.0 * 1024.0),
         }
     }
 
     pub fn to_kibibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => DataStorageUnit::Kibibyte(bytes / 1024),
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Kibibyte(bytes / 1024.0),
             DataStorageUnit::Kibibyte(_) => self,
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Kibibyte(meb * 1024),
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Kibibyte(gib * 1024 * 1024),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Kibibyte(meb * 1024.0),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Kibibyte(gib * 1024.0 * 1024.0),
         }
     }
 
     pub fn to_mebibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => DataStorageUnit::Mebibyte(bytes / (1024 * 1024)),
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Mebibyte(kib / 1024),
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Mebibyte(bytes / (1024 * 1024) as f64),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Mebibyte(kib / 1024.0),
             DataStorageUnit::Mebibyte(_) => self,
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Mebibyte(gib * 1024),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Mebibyte(gib * 1024.0),
         }
     }
 
     pub fn to_gibibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => DataStorageUnit::Gibibyte(bytes / (1024 * 1024 * 1024)),
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Gibibyte(kib / (1024 * 1024)),
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Gibibyte(meb / 1024),
+            DataStorageUnit::Byte(bytes) => {
+                DataStorageUnit::Gibibyte(bytes / (1024 * 1024 * 1024) as f64)
+            }
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Gibibyte(kib / (1024 * 1024) as f64),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Gibibyte(meb / 1024.0),
             DataStorageUnit::Gibibyte(_) => self,
         }
     }
@@ -101,10 +103,10 @@ mod tests {
     use super::*;
     use crate::ramdisk::ramdisk_mount::RamdiskMount;
 
-    const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024 * 1024 * 1024);
-    const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1024 * 1024);
-    const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1024);
-    const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1);
+    const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024.0 * 1024.0 * 1024.0);
+    const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1024.0 * 1024.0);
+    const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1024.0);
+    const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1.0);
 
     #[test]
     fn only_shows_tmpfs_mounts() -> std::io::Result<()> {
@@ -121,7 +123,7 @@ mod tests {
     fn mounts_correctly() -> std::io::Result<()> {
         let device = RamdiskMount::new(
             "/home/ahmed/ramdisk2",
-            DataStorageUnit::Mebibyte(1),
+            DataStorageUnit::Mebibyte(1.0),
             1000,
             1000,
         )?;
@@ -134,7 +136,7 @@ mod tests {
     fn gets_file_stats_correctly() {
         let device = RamdiskMount::new(
             "/home/ahmed/ramdisk",
-            DataStorageUnit::Mebibyte(1),
+            DataStorageUnit::Mebibyte(1.0),
             1000,
             1000,
         )
@@ -142,7 +144,7 @@ mod tests {
         let device_stats = device.get_stats().unwrap();
         let _ = device.remove().unwrap();
 
-        assert_eq!(device_stats.total_space, 1048576);
+        assert_eq!(device_stats.total_space, 1048576.0);
     }
 
     #[test]

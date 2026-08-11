@@ -71,11 +71,11 @@ impl RamdiskMount {
     /// Returns a result that may contain various statistics about the current ramdisk
     pub fn get_stats(&self) -> io::Result<MountInfo> {
         let stats = statvfs(self.mount_point.as_str())?;
-        let block_size = stats.fragment_size();
+        let block_size = stats.fragment_size() as f64;
 
         Ok(MountInfo {
-            total_space: block_size * stats.blocks(),
-            free_space: block_size * stats.blocks_free(),
+            total_space: block_size * stats.blocks() as f64,
+            free_space: block_size * stats.blocks_free() as f64,
         })
     }
 
