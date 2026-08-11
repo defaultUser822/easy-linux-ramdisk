@@ -43,7 +43,7 @@ impl std::fmt::Display for DataStorageUnit {
                 output.push_str(format!("{kib} KiB").as_str());
             }
             DataStorageUnit::Mebibyte(meb) => {
-                output.push_str(format!("{meb} MeB").as_str());
+                output.push_str(format!("{meb} MiB").as_str());
             }
             DataStorageUnit::Gibibyte(gib) => {
                 output.push_str(format!("{gib} GiB").as_str());
