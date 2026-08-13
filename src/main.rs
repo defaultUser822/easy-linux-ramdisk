@@ -44,12 +44,17 @@ impl AppState {
             Message::DeviceSelected(device)
         })
         .width(Fill);
-        let mut column = Column::with_children([mounts_picklist.into()]).spacing(15);
+        let mut main_column = Column::new().spacing(15);
+        let secondary_column: Column<'_, Message> = Column::new().spacing(15);
+
+        if !self.ramdisk_mounts.is_empty() {
+            main_column = main_column.push(mounts_picklist)
+        }
 
         match self.selected_ramdisk.as_ref() {
             Some(mount) => {
                 let mount_stats = mount.get_stats().unwrap();
-                column = column.push(
+                main_column = main_column.push(
                     text(format!(
                         "Disk details for ramdisk device {}",
                         mount.mount_point()
@@ -57,7 +62,7 @@ impl AppState {
                     .width(Fill)
                     .align_x(Alignment::Center),
                 );
-                column = column.push(
+                main_column = main_column.push(
                     text(format!(
                         "Total space: {}",
                         mount_stats.total_space().to_mebibytes()
@@ -65,7 +70,7 @@ impl AppState {
                     .width(Fill)
                     .align_x(Alignment::Center),
                 );
-                column = column.push(
+                main_column = main_column.push(
                     text(format!(
                         "Free space: {}",
                         mount_stats.free_space().to_mebibytes()
@@ -73,7 +78,7 @@ impl AppState {
                     .width(Fill)
                     .align_x(Alignment::Center),
                 );
-                column = column.push(
+                main_column = main_column.push(
                     Button::new("Remove ramdisk device")
                         .width(Fill)
                         .on_press(Message::RemoveSelectedDrive),
@@ -81,7 +86,14 @@ impl AppState {
             }
             None => {}
         }
-        container(column).padding(15).align_x(Alignment::Center)
+
+        let output = if !self.ramdisk_mounts.is_empty() {
+            container(main_column)
+        } else {
+            container(secondary_column)
+        };
+
+        output.padding(15).align_x(Alignment::Center)
     }
 }
 
