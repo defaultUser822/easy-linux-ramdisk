@@ -58,14 +58,20 @@ impl AppState {
                     .align_x(Alignment::Center),
                 );
                 column = column.push(
-                    text(format!("Total space: {}", mount_stats.total_space()))
-                        .width(Fill)
-                        .align_x(Alignment::Center),
+                    text(format!(
+                        "Total space: {}",
+                        mount_stats.total_space().to_mebibytes()
+                    ))
+                    .width(Fill)
+                    .align_x(Alignment::Center),
                 );
                 column = column.push(
-                    text(format!("Free space: {}", mount_stats.free_space()))
-                        .width(Fill)
-                        .align_x(Alignment::Center),
+                    text(format!(
+                        "Free space: {}",
+                        mount_stats.free_space().to_mebibytes()
+                    ))
+                    .width(Fill)
+                    .align_x(Alignment::Center),
                 );
                 column = column.push(
                     Button::new("Remove ramdisk device")
