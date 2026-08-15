@@ -20,6 +20,10 @@ pub struct MountInfo {
     free_space: f64,
 }
 
+const KIB_FACTOR: f64 = 1024.0;
+const MEB_FACTOR: f64 = 1024.0 * 1024.0;
+const GIB_FACTOR: f64 = 1024.0 * 1024.0 * 1024.0;
+
 impl MountInfo {
     /// Returns the total amount space of the mount in bytes
     pub fn total_space(&self) -> DataStorageUnit {
@@ -70,37 +74,35 @@ impl DataStorageUnit {
     pub fn to_bytes(self) -> Self {
         match self {
             DataStorageUnit::Byte(_) => self,
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Byte(kib * 1024.0),
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Byte(meb * 1024.0 * 1024.0),
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Byte(gib * 1024.0 * 1024.0 * 1024.0),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Byte(kib * KIB_FACTOR),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Byte(meb * MEB_FACTOR),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Byte(gib * GIB_FACTOR),
         }
     }
 
     pub fn to_kibibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => DataStorageUnit::Kibibyte(bytes / 1024.0),
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Kibibyte(bytes / KIB_FACTOR),
             DataStorageUnit::Kibibyte(_) => self,
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Kibibyte(meb * 1024.0),
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Kibibyte(gib * 1024.0 * 1024.0),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Kibibyte(meb * KIB_FACTOR),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Kibibyte(gib * MEB_FACTOR),
         }
     }
 
     pub fn to_mebibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => DataStorageUnit::Mebibyte(bytes / (1024 * 1024) as f64),
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Mebibyte(kib / 1024.0),
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Mebibyte(bytes / MEB_FACTOR),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Mebibyte(kib / KIB_FACTOR),
             DataStorageUnit::Mebibyte(_) => self,
-            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Mebibyte(gib * 1024.0),
+            DataStorageUnit::Gibibyte(gib) => DataStorageUnit::Mebibyte(gib * KIB_FACTOR),
         }
     }
 
     pub fn to_gibibytes(self) -> Self {
         match self {
-            DataStorageUnit::Byte(bytes) => {
-                DataStorageUnit::Gibibyte(bytes / (1024 * 1024 * 1024) as f64)
-            }
-            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Gibibyte(kib / (1024 * 1024) as f64),
-            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Gibibyte(meb / 1024.0),
+            DataStorageUnit::Byte(bytes) => DataStorageUnit::Gibibyte(bytes / GIB_FACTOR),
+            DataStorageUnit::Kibibyte(kib) => DataStorageUnit::Gibibyte(kib / MEB_FACTOR),
+            DataStorageUnit::Mebibyte(meb) => DataStorageUnit::Gibibyte(meb / KIB_FACTOR),
             DataStorageUnit::Gibibyte(_) => self,
         }
     }
