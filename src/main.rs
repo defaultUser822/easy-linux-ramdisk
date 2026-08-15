@@ -45,7 +45,7 @@ impl AppState {
         })
         .width(Fill);
         let mut main_column = Column::new().spacing(15);
-        let secondary_column: Column<'_, Message> = Column::new().spacing(15);
+        let mut secondary_column: Column<'_, Message> = Column::new().spacing(15);
 
         if !self.ramdisk_mounts.is_empty() {
             main_column = main_column.push(mounts_picklist)
@@ -86,6 +86,13 @@ impl AppState {
             }
             None => {}
         }
+
+        secondary_column = secondary_column.push(
+            text("It looks like you don't have any ramdisk devices.")
+                .width(Fill)
+                .align_x(Alignment::Center),
+        );
+        secondary_column = secondary_column.push(Button::new("Create New Ramdisk").width(Fill));
 
         let output = if !self.ramdisk_mounts.is_empty() {
             container(main_column)
