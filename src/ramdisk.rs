@@ -58,8 +58,37 @@ impl std::fmt::Display for DataStorageUnit {
 }
 
 impl DataStorageUnit {
+    // TODO: Improve this horrible implementation
+    // TODO: Make this function auto convert from higher to lower units
+    /// Auto converts the data storage unit to the most appropriate variant of the enum.
     pub fn auto_convert(self) -> Self {
-        todo!()
+        let mut output: DataStorageUnit = self;
+        for _ in 0..4 {
+            match self {
+                DataStorageUnit::Byte(bytes) => {
+                    if bytes >= 1024.0 {
+                        output = output.to_kibibytes();
+                        output = output.auto_convert();
+                    }
+                }
+                DataStorageUnit::Kibibyte(kib) => {
+                    if kib >= 1024.0 {
+                        output = output.to_mebibytes();
+                        output = output.auto_convert();
+                    }
+                }
+                DataStorageUnit::Mebibyte(meb) => {
+                    if meb >= 1024.0 {
+                        output = output.to_gibibytes();
+                        output = output.auto_convert();
+                    }
+                }
+                _ => {
+                    output = self;
+                }
+            }
+        }
+        output
     }
 
     fn value(&self) -> f64 {
@@ -109,6 +138,8 @@ impl DataStorageUnit {
 }
 
 // TODO: Use a better location for the tests that use a location
+// TODO: Reduce duplication
+// TODO: Remove the `DataStorageUnite::` and make it so you can just do `Byte(f64)`
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,5 +219,72 @@ mod tests {
         assert_eq!(GIB_IN_KIB.to_gibibytes(), GIB);
         assert_eq!(GIB_IN_MEB.to_gibibytes(), GIB);
         assert_eq!(GIB.to_gibibytes(), GIB);
+    }
+
+    // How to read the names of the tests below: auto_converts_to_[unit]_from_units_lower/higher_than_[unit], where [unit] is any variant of the `DataStorageUnit` enum.
+
+    #[test]
+    fn auto_converts_to_lower_kibibytes() {
+        const KIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024.0);
+        const KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1.0);
+        assert_eq!(KIB_IN_BYTES.auto_convert(), KIB);
+        assert_eq!(KIB.auto_convert(), KIB);
+    }
+
+    #[test]
+    fn auto_converts_to_lower_mebibytes() {
+        const MEB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(MEB_FACTOR);
+        const MEB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(KIB_FACTOR);
+        const MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1.0);
+
+        assert_eq!(MEB_IN_BYTES.auto_convert(), MEB);
+        assert_eq!(MEB_IN_KIB.auto_convert(), MEB);
+        assert_eq!(MEB.auto_convert(), MEB);
+    }
+
+    #[test]
+    fn auto_converts_to_lower_gibibytes() {
+        const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(GIB_FACTOR);
+        const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(MEB_FACTOR);
+        const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(KIB_FACTOR);
+        const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1.0);
+
+        assert_eq!(GIB_IN_BYTES.auto_convert(), GIB);
+        assert_eq!(GIB_IN_KIB.auto_convert(), GIB);
+        assert_eq!(GIB_IN_MEB.auto_convert(), GIB);
+        assert_eq!(GIB.auto_convert(), GIB);
+    }
+
+    #[test]
+    fn auto_converts_to_higher_bytes() {
+        const BYTES: DataStorageUnit = DataStorageUnit::Byte(1023.0);
+        let bytes_in_meb = BYTES.to_mebibytes();
+        let bytes_in_kib = BYTES.to_kibibytes();
+        let bytes_in_gib = BYTES.to_gibibytes();
+
+        assert_eq!(bytes_in_kib.auto_convert(), BYTES);
+        assert_eq!(bytes_in_meb.auto_convert(), BYTES);
+        assert_eq!(bytes_in_gib.auto_convert(), BYTES);
+        assert_eq!(BYTES.auto_convert(), BYTES);
+    }
+
+    #[test]
+    fn auto_converts_to_higher_kibibytes() {
+        const KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1023.0);
+        let kib_in_meb = KIB.to_mebibytes();
+        let kib_in_gib = KIB.to_gibibytes();
+
+        assert_eq!(kib_in_meb.auto_convert(), KIB);
+        assert_eq!(kib_in_gib.auto_convert(), KIB);
+        assert_eq!(KIB.auto_convert(), KIB);
+    }
+
+    #[test]
+    fn auto_converts_to_higher_mebibytes() {
+        const MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1023.0);
+        let meb_in_gib = MEB.to_gibibytes();
+
+        assert_eq!(meb_in_gib.auto_convert(), MEB);
+        assert_eq!(MEB.auto_convert(), MEB);
     }
 }
