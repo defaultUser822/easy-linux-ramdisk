@@ -65,7 +65,7 @@ impl AppState {
                 main_column = main_column.push(
                     text(format!(
                         "Total space: {}",
-                        mount_stats.total_space().to_mebibytes()
+                        mount_stats.total_space().auto_convert()
                     ))
                     .width(Fill)
                     .align_x(Alignment::Center),
@@ -73,7 +73,7 @@ impl AppState {
                 main_column = main_column.push(
                     text(format!(
                         "Free space: {}",
-                        mount_stats.free_space().to_mebibytes()
+                        mount_stats.free_space().auto_convert()
                     ))
                     .width(Fill)
                     .align_x(Alignment::Center),
