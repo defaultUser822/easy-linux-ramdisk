@@ -17,6 +17,7 @@ struct AppState {
 enum Message {
     DeviceSelected(RamdiskMount),
     RemoveSelectedDrive,
+    DeviceListUpdated,
 }
 
 impl AppState {
