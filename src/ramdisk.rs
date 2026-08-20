@@ -91,15 +91,6 @@ impl DataStorageUnit {
         output
     }
 
-    fn value(&self) -> f64 {
-        match self {
-            DataStorageUnit::Byte(bytes) => *bytes,
-            DataStorageUnit::Kibibyte(kib) => *kib,
-            DataStorageUnit::Mebibyte(meb) => *meb,
-            DataStorageUnit::Gibibyte(gib) => *gib,
-        }
-    }
-
     pub fn to_bytes(self) -> Self {
         match self {
             DataStorageUnit::Byte(_) => self,
