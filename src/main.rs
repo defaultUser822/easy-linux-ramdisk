@@ -1,6 +1,6 @@
 pub mod ramdisk;
 
-use iced::widget::{Button, Column, Container, container, pick_list, text};
+use iced::widget::{Button, Column, Container, Row, container, pick_list, text};
 use iced::{Alignment, Length::Fill, Size, application};
 
 use crate::ramdisk::{MountInfo, ramdisk_mount::RamdiskMount};
@@ -34,6 +34,10 @@ impl AppState {
         match message {
             Message::DeviceSelected(mount) => {
                 self.selected_ramdisk = Some(mount);
+                self.update(Message::DeviceListUpdated);
+            }
+            Message::DeviceListUpdated => {
+                self.ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
             }
             _ => println!("TODO"),
         }
@@ -45,11 +49,18 @@ impl AppState {
             Message::DeviceSelected(device)
         })
         .width(Fill);
+        let refresh_button: Button<'_, Message> = Button::new("🗘")
+            .width(30)
+            .on_press(Message::DeviceListUpdated);
+        let mut picklist_row: Row<'_, Message> = Row::new().spacing(5);
         let mut main_column = Column::new().spacing(15);
         let mut secondary_column: Column<'_, Message> = Column::new().spacing(15);
 
+        picklist_row = picklist_row.push(mounts_picklist);
+        picklist_row = picklist_row.push(refresh_button);
+
         if !self.ramdisk_mounts.is_empty() {
-            main_column = main_column.push(mounts_picklist)
+            main_column = main_column.push(picklist_row)
         }
 
         match self.selected_ramdisk.as_ref() {
@@ -94,6 +105,11 @@ impl AppState {
                 .align_x(Alignment::Center),
         );
         secondary_column = secondary_column.push(Button::new("Create New Ramdisk").width(Fill));
+        secondary_column = secondary_column.push(
+            Button::new("Check for new Ramdisks")
+                .width(Fill)
+                .on_press(Message::DeviceListUpdated),
+        );
 
         let output = if !self.ramdisk_mounts.is_empty() {
             container(main_column)
