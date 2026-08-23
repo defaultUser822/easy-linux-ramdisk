@@ -10,6 +10,7 @@ struct AppState {
     ramdisk_mounts: Vec<RamdiskMount>,
     selected_ramdisk: Option<RamdiskMount>,
     selected_ramdisk_stats: Option<MountInfo>,
+    current_page: AppPage,
 }
 
 #[derive(Debug, Clone)]
@@ -20,13 +21,30 @@ enum Message {
     DeviceListUpdated,
 }
 
+#[allow(unused)]
+enum AppPage {
+    Info,
+    NoRamdiskDevices,
+    SelectRamdiskDevice,
+    NewRamdiskDevice,
+}
+
 impl AppState {
     #[allow(unused)]
     fn new() -> Self {
+        let ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
+        let is_ramdisk_mounts_empty = ramdisk_mounts.is_empty();
         Self {
-            ramdisk_mounts: RamdiskMount::from_existing(true).unwrap(),
+            ramdisk_mounts,
             selected_ramdisk: None,
             selected_ramdisk_stats: None,
+            current_page: {
+                if is_ramdisk_mounts_empty {
+                    AppPage::NoRamdiskDevices
+                } else {
+                    AppPage::SelectRamdiskDevice
+                }
+            },
         }
     }
 
@@ -38,6 +56,13 @@ impl AppState {
             }
             Message::DeviceListUpdated => {
                 self.ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
+                self.current_page = {
+                    if self.ramdisk_mounts.is_empty() {
+                        AppPage::NoRamdiskDevices
+                    } else {
+                        AppPage::SelectRamdiskDevice
+                    }
+                };
             }
             Message::RemoveSelectedDrive => {
                 match self.selected_ramdisk.as_ref().unwrap().remove() {
@@ -57,28 +82,29 @@ impl AppState {
     }
 
     fn view(&self) -> Container<'_, Message> {
+        // TODO: Add a variable for the spacing.
+
+        // SelectRamdiskDevice page
+        let mut sel_ramdisk_col = Column::new().spacing(15);
+
+        let mut picklist_row: Row<'_, Message> = Row::new().spacing(5);
         let mount_list = self.ramdisk_mounts.clone();
         let mounts_picklist = pick_list(mount_list, self.selected_ramdisk.clone(), |device| {
             Message::DeviceSelected(device)
         })
         .width(Fill);
         let refresh_button: Button<'_, Message> = Button::new("🗘")
-            .width(30)
+            .width(30) // TODO: Find a width for this buttons that better containt the "🗘" symbol
             .on_press(Message::DeviceListUpdated);
-        let mut picklist_row: Row<'_, Message> = Row::new().spacing(5);
-        let mut main_column = Column::new().spacing(15);
-        let mut secondary_column: Column<'_, Message> = Column::new().spacing(15);
 
         picklist_row = picklist_row.push(mounts_picklist);
         picklist_row = picklist_row.push(refresh_button);
-
-        if !self.ramdisk_mounts.is_empty() {
-            main_column = main_column.push(picklist_row)
-        }
+        sel_ramdisk_col = sel_ramdisk_col.push(picklist_row);
 
         if let Some(mount) = self.selected_ramdisk.as_ref() {
             let mount_stats = mount.get_stats().unwrap();
-            main_column = main_column.push(
+
+            sel_ramdisk_col = sel_ramdisk_col.push(
                 text(format!(
                     "Disk details for ramdisk device {}",
                     mount.mount_point()
@@ -86,7 +112,8 @@ impl AppState {
                 .width(Fill)
                 .align_x(Alignment::Center),
             );
-            main_column = main_column.push(
+
+            sel_ramdisk_col = sel_ramdisk_col.push(
                 text(format!(
                     "Total space: {}",
                     mount_stats.total_space().auto_convert()
@@ -94,7 +121,8 @@ impl AppState {
                 .width(Fill)
                 .align_x(Alignment::Center),
             );
-            main_column = main_column.push(
+
+            sel_ramdisk_col = sel_ramdisk_col.push(
                 text(format!(
                     "Free space: {}",
                     mount_stats.free_space().auto_convert()
@@ -102,32 +130,35 @@ impl AppState {
                 .width(Fill)
                 .align_x(Alignment::Center),
             );
-            main_column = main_column.push(
+
+            sel_ramdisk_col = sel_ramdisk_col.push(
                 Button::new("Remove ramdisk device")
                     .width(Fill)
                     .on_press(Message::RemoveSelectedDrive),
             );
         }
 
-        secondary_column = secondary_column.push(
+        // NoRamdiskDevices page
+        let mut no_ramdisks_col: Column<'_, Message> = Column::new().spacing(15);
+        no_ramdisks_col = no_ramdisks_col.push(
             text("It looks like you don't have any ramdisk devices.")
                 .width(Fill)
                 .align_x(Alignment::Center),
         );
-        secondary_column = secondary_column.push(Button::new("Create New Ramdisk").width(Fill));
-        secondary_column = secondary_column.push(
+        no_ramdisks_col = no_ramdisks_col.push(Button::new("Create New Ramdisk").width(Fill));
+        no_ramdisks_col = no_ramdisks_col.push(
             Button::new("Check for new Ramdisks")
                 .width(Fill)
                 .on_press(Message::DeviceListUpdated),
         );
 
-        let output = if !self.ramdisk_mounts.is_empty() {
-            container(main_column)
-        } else {
-            container(secondary_column)
-        };
-
-        output.padding(15).align_x(Alignment::Center)
+        match self.current_page {
+            AppPage::SelectRamdiskDevice => container(sel_ramdisk_col),
+            AppPage::NoRamdiskDevices => container(no_ramdisks_col),
+            _ => container(text("TODO")),
+        }
+        .padding(15)
+        .align_x(Alignment::Center)
     }
 }
 
