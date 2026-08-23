@@ -39,7 +39,20 @@ impl AppState {
             Message::DeviceListUpdated => {
                 self.ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
             }
-            _ => println!("TODO"),
+            Message::RemoveSelectedDrive => {
+                match self.selected_ramdisk.as_ref().unwrap().remove() {
+                    Ok(()) => {
+                        self.selected_ramdisk = None;
+                        self.update(Message::DeviceListUpdated);
+                    }
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::PermissionDenied => {
+                            println!("Failed to unmount due to insufficient permissions")
+                        }
+                        _ => println!("Other error."),
+                    },
+                }
+            }
         }
     }
 

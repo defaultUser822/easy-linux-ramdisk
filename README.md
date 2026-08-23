@@ -13,5 +13,5 @@ A graphical program that lets the user create ramdisk devices on Linux.
   - [x] General improvements to the core library
 - [ ] Have an intuitive and useful GUI.
   - [x] Ability to select existing ramdisk devices through a dropdown
-  - [ ] Ability to remove existing ramdisk devices
+  - [x] Ability to remove existing ramdisk devices
   - [ ] Ability to add new ramdisk devices through a new window
