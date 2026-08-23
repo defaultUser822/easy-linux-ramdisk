@@ -63,40 +63,37 @@ impl AppState {
             main_column = main_column.push(picklist_row)
         }
 
-        match self.selected_ramdisk.as_ref() {
-            Some(mount) => {
-                let mount_stats = mount.get_stats().unwrap();
-                main_column = main_column.push(
-                    text(format!(
-                        "Disk details for ramdisk device {}",
-                        mount.mount_point()
-                    ))
+        if let Some(mount) = self.selected_ramdisk.as_ref() {
+            let mount_stats = mount.get_stats().unwrap();
+            main_column = main_column.push(
+                text(format!(
+                    "Disk details for ramdisk device {}",
+                    mount.mount_point()
+                ))
+                .width(Fill)
+                .align_x(Alignment::Center),
+            );
+            main_column = main_column.push(
+                text(format!(
+                    "Total space: {}",
+                    mount_stats.total_space().auto_convert()
+                ))
+                .width(Fill)
+                .align_x(Alignment::Center),
+            );
+            main_column = main_column.push(
+                text(format!(
+                    "Free space: {}",
+                    mount_stats.free_space().auto_convert()
+                ))
+                .width(Fill)
+                .align_x(Alignment::Center),
+            );
+            main_column = main_column.push(
+                Button::new("Remove ramdisk device")
                     .width(Fill)
-                    .align_x(Alignment::Center),
-                );
-                main_column = main_column.push(
-                    text(format!(
-                        "Total space: {}",
-                        mount_stats.total_space().auto_convert()
-                    ))
-                    .width(Fill)
-                    .align_x(Alignment::Center),
-                );
-                main_column = main_column.push(
-                    text(format!(
-                        "Free space: {}",
-                        mount_stats.free_space().auto_convert()
-                    ))
-                    .width(Fill)
-                    .align_x(Alignment::Center),
-                );
-                main_column = main_column.push(
-                    Button::new("Remove ramdisk device")
-                        .width(Fill)
-                        .on_press(Message::RemoveSelectedDrive),
-                );
-            }
-            None => {}
+                    .on_press(Message::RemoveSelectedDrive),
+            );
         }
 
         secondary_column = secondary_column.push(
