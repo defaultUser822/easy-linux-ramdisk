@@ -75,9 +75,9 @@ impl AppState {
                     }
                     Err(e) => match e.kind() {
                         std::io::ErrorKind::PermissionDenied => Some(
-                            "Error: Failed to unmount due to insufficient permissions".to_string(),
+                            "Error: Failed to unmount due to insufficient permissions\nDid you run this program as root?".to_string(),
                         ),
-                        _ => Some(format!("Error: {e}")),
+                        _ => Some(format!("Error: {}", e.kind())),
                     },
                 };
             }
@@ -101,7 +101,7 @@ impl AppState {
         })
         .width(Fill);
         let refresh_button: Button<'_, Message> = Button::new("🗘")
-            .width(30) // TODO: Find a width for this buttons that better containt the "🗘" symbol
+            .width(35)
             .on_press(Message::DeviceListUpdated);
 
         picklist_row = picklist_row.push(mounts_picklist);
