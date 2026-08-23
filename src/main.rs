@@ -170,10 +170,14 @@ impl AppState {
             );
         }
 
+        let sel_ramdisk_page = container(sel_ramdisk_col);
+        let no_ramdisks_page = container(no_ramdisks_col);
+        let info_page = container(info_col);
+
         match self.current_page {
-            AppPage::SelectRamdiskDevice => container(sel_ramdisk_col),
-            AppPage::NoRamdiskDevices => container(no_ramdisks_col),
-            AppPage::Info => container(info_col),
+            AppPage::SelectRamdiskDevice => sel_ramdisk_page,
+            AppPage::NoRamdiskDevices => no_ramdisks_page,
+            AppPage::Info => info_page,
             _ => container(text("TODO")),
         }
         .padding(spacing)
