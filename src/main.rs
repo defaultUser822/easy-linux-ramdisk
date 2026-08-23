@@ -159,6 +159,8 @@ impl AppState {
         }
         .padding(15)
         .align_x(Alignment::Center)
+        .align_y(Alignment::Center)
+        .height(Fill)
     }
 }
 
