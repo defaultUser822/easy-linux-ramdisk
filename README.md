@@ -15,3 +15,4 @@ A graphical program that lets the user create ramdisk devices on Linux.
   - [x] Ability to select existing ramdisk devices through a dropdown
   - [x] Ability to remove existing ramdisk devices
   - [ ] Ability to add new ramdisk devices through a new window
+  - [ ] Proper error propagation to the user for when something goes wrong
