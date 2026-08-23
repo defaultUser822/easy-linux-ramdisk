@@ -11,6 +11,7 @@ struct AppState {
     selected_ramdisk: Option<RamdiskMount>,
     selected_ramdisk_stats: Option<MountInfo>,
     current_page: AppPage,
+    status_text: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -19,9 +20,11 @@ enum Message {
     DeviceSelected(RamdiskMount),
     RemoveSelectedDrive,
     DeviceListUpdated,
+    InfoPageDismissed,
 }
 
 #[allow(unused)]
+#[derive(PartialEq)]
 enum AppPage {
     Info,
     NoRamdiskDevices,
@@ -29,6 +32,7 @@ enum AppPage {
     NewRamdiskDevice,
 }
 
+// TODO: Add a function that checks if the ramdisk mounts are empty and then return the page the the `current_page` should be set to
 impl AppState {
     #[allow(unused)]
     fn new() -> Self {
@@ -45,6 +49,7 @@ impl AppState {
                     AppPage::SelectRamdiskDevice
                 }
             },
+            status_text: None,
         }
     }
 
@@ -56,6 +61,33 @@ impl AppState {
             }
             Message::DeviceListUpdated => {
                 self.ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
+                if self.current_page != AppPage::Info {
+                    self.current_page = {
+                        if self.ramdisk_mounts.is_empty() {
+                            AppPage::NoRamdiskDevices
+                        } else {
+                            AppPage::SelectRamdiskDevice
+                        }
+                    }
+                };
+            }
+            Message::RemoveSelectedDrive => {
+                self.current_page = AppPage::Info;
+                self.status_text = match self.selected_ramdisk.as_ref().unwrap().remove() {
+                    Ok(()) => {
+                        self.selected_ramdisk = None;
+                        self.update(Message::DeviceListUpdated);
+                        Some("Successfully unmounted this ramdisk device".to_string())
+                    }
+                    Err(e) => match e.kind() {
+                        std::io::ErrorKind::PermissionDenied => Some(
+                            "Error: Failed to unmount due to insufficient permissions".to_string(),
+                        ),
+                        _ => Some(format!("Error: {e}")),
+                    },
+                };
+            }
+            Message::InfoPageDismissed => {
                 self.current_page = {
                     if self.ramdisk_mounts.is_empty() {
                         AppPage::NoRamdiskDevices
@@ -63,20 +95,7 @@ impl AppState {
                         AppPage::SelectRamdiskDevice
                     }
                 };
-            }
-            Message::RemoveSelectedDrive => {
-                match self.selected_ramdisk.as_ref().unwrap().remove() {
-                    Ok(()) => {
-                        self.selected_ramdisk = None;
-                        self.update(Message::DeviceListUpdated);
-                    }
-                    Err(e) => match e.kind() {
-                        std::io::ErrorKind::PermissionDenied => {
-                            println!("Failed to unmount due to insufficient permissions")
-                        }
-                        _ => println!("Other error."),
-                    },
-                }
+                self.update(Message::DeviceListUpdated);
             }
         }
     }
@@ -152,9 +171,21 @@ impl AppState {
                 .on_press(Message::DeviceListUpdated),
         );
 
+        // Info page
+        let mut info_col: Column<'_, Message> = Column::new().spacing(15);
+        if let Some(status_text) = self.status_text.as_ref() {
+            info_col = info_col.push(text(status_text).width(Fill).align_x(Alignment::Center));
+            info_col = info_col.push(
+                Button::new("Dismiss")
+                    .width(Fill)
+                    .on_press(Message::InfoPageDismissed),
+            );
+        }
+
         match self.current_page {
             AppPage::SelectRamdiskDevice => container(sel_ramdisk_col),
             AppPage::NoRamdiskDevices => container(no_ramdisks_col),
+            AppPage::Info => container(info_col),
             _ => container(text("TODO")),
         }
         .padding(15)
