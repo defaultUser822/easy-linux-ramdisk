@@ -89,10 +89,10 @@ impl AppState {
     }
 
     fn view(&self) -> Container<'_, Message> {
-        // TODO: Add a variable for the spacing.
+        let spacing = 15.0;
 
         // SelectRamdiskDevice page
-        let mut sel_ramdisk_col = Column::new().spacing(15);
+        let mut sel_ramdisk_col = Column::new().spacing(spacing);
 
         let mut picklist_row: Row<'_, Message> = Row::new().spacing(5);
         let mount_list = self.ramdisk_mounts.clone();
@@ -146,7 +146,7 @@ impl AppState {
         }
 
         // NoRamdiskDevices page
-        let mut no_ramdisks_col: Column<'_, Message> = Column::new().spacing(15);
+        let mut no_ramdisks_col: Column<'_, Message> = Column::new().spacing(spacing);
         no_ramdisks_col = no_ramdisks_col.push(
             text("It looks like you don't have any ramdisk devices.")
                 .width(Fill)
@@ -160,7 +160,7 @@ impl AppState {
         );
 
         // Info page
-        let mut info_col: Column<'_, Message> = Column::new().spacing(15);
+        let mut info_col: Column<'_, Message> = Column::new().spacing(spacing);
         if let Some(status_text) = self.status_text.as_ref() {
             info_col = info_col.push(text(status_text).width(Fill).align_x(Alignment::Center));
             info_col = info_col.push(
@@ -176,7 +176,7 @@ impl AppState {
             AppPage::Info => container(info_col),
             _ => container(text("TODO")),
         }
-        .padding(15)
+        .padding(spacing)
         .align_x(Alignment::Center)
         .align_y(Alignment::Center)
         .height(Fill)
