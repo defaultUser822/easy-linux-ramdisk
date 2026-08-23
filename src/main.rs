@@ -32,7 +32,7 @@ enum AppPage {
     NewRamdiskDevice,
 }
 
-// TODO: Add a function that checks if the ramdisk mounts are empty and then return the page the the `current_page` should be set to
+// TODO: Make functions that return widgets with the common settings
 impl AppState {
     #[allow(unused)]
     fn new() -> Self {
@@ -62,13 +62,7 @@ impl AppState {
             Message::DeviceListUpdated => {
                 self.ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
                 if self.current_page != AppPage::Info {
-                    self.current_page = {
-                        if self.ramdisk_mounts.is_empty() {
-                            AppPage::NoRamdiskDevices
-                        } else {
-                            AppPage::SelectRamdiskDevice
-                        }
-                    }
+                    self.current_page = self.appropriate_page()
                 };
             }
             Message::RemoveSelectedDrive => {
@@ -88,13 +82,7 @@ impl AppState {
                 };
             }
             Message::InfoPageDismissed => {
-                self.current_page = {
-                    if self.ramdisk_mounts.is_empty() {
-                        AppPage::NoRamdiskDevices
-                    } else {
-                        AppPage::SelectRamdiskDevice
-                    }
-                };
+                self.current_page = self.appropriate_page();
                 self.update(Message::DeviceListUpdated);
             }
         }
@@ -192,6 +180,15 @@ impl AppState {
         .align_x(Alignment::Center)
         .align_y(Alignment::Center)
         .height(Fill)
+    }
+
+    /// Returns the appropriate page for the current situation based only on whether there are ramdisks currently mounted or not.
+    fn appropriate_page(&self) -> AppPage {
+        if self.ramdisk_mounts.is_empty() {
+            AppPage::NoRamdiskDevices
+        } else {
+            AppPage::SelectRamdiskDevice
+        }
     }
 }
 
