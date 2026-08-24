@@ -159,12 +159,12 @@ impl DataStorageUnit {
     }
 }
 
-// TODO: Use a better location for the tests that use a location
 // TODO: Reduce duplication
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ramdisk::{DataStorageUnit::*, ramdisk_mount::RamdiskMount};
+    use std::env::var;
 
     const GIB_IN_BYTES: DataStorageUnit = Byte(1024.0 * 1024.0 * 1024.0);
     const GIB_IN_KIB: DataStorageUnit = Kibibyte(1024.0 * 1024.0);
@@ -184,7 +184,13 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> std::io::Result<()> {
-        let device = RamdiskMount::new("/home/ahmed/ramdisk2", Mebibyte(1.0), 1000, 1000)?;
+        let home_dir = var("HOME").unwrap();
+        let device = RamdiskMount::new(
+            format!("{home_dir}/ramdisk2").as_str(),
+            Mebibyte(1.0),
+            1000,
+            1000,
+        )?;
         device.remove()?;
 
         Ok(())
@@ -192,7 +198,14 @@ mod tests {
 
     #[test]
     fn gets_file_stats_correctly() {
-        let device = RamdiskMount::new("/home/ahmed/ramdisk", Mebibyte(1.0), 1000, 1000).unwrap();
+        let home_dir = var("HOME").unwrap();
+        let device = RamdiskMount::new(
+            format!("{home_dir}/ramdisk2").as_str(),
+            Mebibyte(1.0),
+            1000,
+            1000,
+        )
+        .unwrap();
         let device_stats = device.get_stats().unwrap();
         let _ = device.remove().unwrap();
 
