@@ -133,13 +133,14 @@ impl AppState {
         let mounts_picklist = pick_list(mount_list, self.selected_ramdisk.clone(), |device| {
             Message::DeviceSelected(device)
         })
-        .width(Fill);
+        .width(FillPortion(17));
         let refresh_button: Button<'_, Message> = Button::new("🗘")
-            .width(35)
+            .width(FillPortion(3))
             .on_press(Message::DeviceListUpdated);
 
         picklist_row = picklist_row.push(mounts_picklist);
         picklist_row = picklist_row.push(refresh_button);
+
         sel_ramdisk_col = sel_ramdisk_col.push(picklist_row);
 
         if let Some(mount) = self.selected_ramdisk.as_ref() {
@@ -176,6 +177,12 @@ impl AppState {
                 Button::new("Remove ramdisk device")
                     .width(Fill)
                     .on_press(Message::RemoveSelectedDrive),
+            );
+
+            sel_ramdisk_col = sel_ramdisk_col.push(
+                Button::new("Create new Ramdisk")
+                    .on_press(Message::OpenNewRamdiskPage)
+                    .width(Fill),
             );
         }
 
@@ -280,8 +287,8 @@ fn main() -> iced::Result {
     application(AppState::default, AppState::update, AppState::view)
         .font(ICED_AW_FONT_BYTES)
         .window_size(Size {
-            width: 250_f32,
-            height: 250_f32,
+            width: 300_f32,
+            height: 400_f32,
         })
         .title("TMPFS GUI")
         .run()
