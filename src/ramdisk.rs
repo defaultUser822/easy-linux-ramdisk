@@ -161,16 +161,15 @@ impl DataStorageUnit {
 
 // TODO: Use a better location for the tests that use a location
 // TODO: Reduce duplication
-// TODO: Remove the `DataStorageUnite::` and make it so you can just do `Byte(f64)`
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ramdisk::ramdisk_mount::RamdiskMount;
+    use crate::ramdisk::{DataStorageUnit::*, ramdisk_mount::RamdiskMount};
 
-    const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024.0 * 1024.0 * 1024.0);
-    const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1024.0 * 1024.0);
-    const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1024.0);
-    const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1.0);
+    const GIB_IN_BYTES: DataStorageUnit = Byte(1024.0 * 1024.0 * 1024.0);
+    const GIB_IN_KIB: DataStorageUnit = Kibibyte(1024.0 * 1024.0);
+    const GIB_IN_MEB: DataStorageUnit = Mebibyte(1024.0);
+    const GIB: DataStorageUnit = Gibibyte(1.0);
 
     #[test]
     fn only_shows_tmpfs_mounts() -> std::io::Result<()> {
@@ -185,12 +184,7 @@ mod tests {
 
     #[test]
     fn mounts_correctly() -> std::io::Result<()> {
-        let device = RamdiskMount::new(
-            "/home/ahmed/ramdisk2",
-            DataStorageUnit::Mebibyte(1.0),
-            1000,
-            1000,
-        )?;
+        let device = RamdiskMount::new("/home/ahmed/ramdisk2", Mebibyte(1.0), 1000, 1000)?;
         device.remove()?;
 
         Ok(())
@@ -198,13 +192,7 @@ mod tests {
 
     #[test]
     fn gets_file_stats_correctly() {
-        let device = RamdiskMount::new(
-            "/home/ahmed/ramdisk",
-            DataStorageUnit::Mebibyte(1.0),
-            1000,
-            1000,
-        )
-        .unwrap();
+        let device = RamdiskMount::new("/home/ahmed/ramdisk", Mebibyte(1.0), 1000, 1000).unwrap();
         let device_stats = device.get_stats().unwrap();
         let _ = device.remove().unwrap();
 
@@ -247,17 +235,17 @@ mod tests {
 
     #[test]
     fn auto_converts_to_lower_kibibytes() {
-        const KIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(1024.0);
-        const KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1.0);
+        const KIB_IN_BYTES: DataStorageUnit = Byte(1024.0);
+        const KIB: DataStorageUnit = Kibibyte(1.0);
         assert_eq!(KIB_IN_BYTES.auto_convert(), KIB);
         assert_eq!(KIB.auto_convert(), KIB);
     }
 
     #[test]
     fn auto_converts_to_lower_mebibytes() {
-        const MEB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(MEB_FACTOR);
-        const MEB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(KIB_FACTOR);
-        const MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1.0);
+        const MEB_IN_BYTES: DataStorageUnit = Byte(MEB_FACTOR);
+        const MEB_IN_KIB: DataStorageUnit = Kibibyte(KIB_FACTOR);
+        const MEB: DataStorageUnit = Mebibyte(1.0);
 
         assert_eq!(MEB_IN_BYTES.auto_convert(), MEB);
         assert_eq!(MEB_IN_KIB.auto_convert(), MEB);
@@ -266,10 +254,10 @@ mod tests {
 
     #[test]
     fn auto_converts_to_lower_gibibytes() {
-        const GIB_IN_BYTES: DataStorageUnit = DataStorageUnit::Byte(GIB_FACTOR);
-        const GIB_IN_KIB: DataStorageUnit = DataStorageUnit::Kibibyte(MEB_FACTOR);
-        const GIB_IN_MEB: DataStorageUnit = DataStorageUnit::Mebibyte(KIB_FACTOR);
-        const GIB: DataStorageUnit = DataStorageUnit::Gibibyte(1.0);
+        const GIB_IN_BYTES: DataStorageUnit = Byte(GIB_FACTOR);
+        const GIB_IN_KIB: DataStorageUnit = Kibibyte(MEB_FACTOR);
+        const GIB_IN_MEB: DataStorageUnit = Mebibyte(KIB_FACTOR);
+        const GIB: DataStorageUnit = Gibibyte(1.0);
 
         assert_eq!(GIB_IN_BYTES.auto_convert(), GIB);
         assert_eq!(GIB_IN_KIB.auto_convert(), GIB);
@@ -279,7 +267,7 @@ mod tests {
 
     #[test]
     fn auto_converts_to_higher_bytes() {
-        const BYTES: DataStorageUnit = DataStorageUnit::Byte(1023.0);
+        const BYTES: DataStorageUnit = Byte(1023.0);
         let bytes_in_meb = BYTES.to_mebibytes();
         let bytes_in_kib = BYTES.to_kibibytes();
         let bytes_in_gib = BYTES.to_gibibytes();
@@ -292,7 +280,7 @@ mod tests {
 
     #[test]
     fn auto_converts_to_higher_kibibytes() {
-        const KIB: DataStorageUnit = DataStorageUnit::Kibibyte(1023.0);
+        const KIB: DataStorageUnit = Kibibyte(1023.0);
         let kib_in_meb = KIB.to_mebibytes();
         let kib_in_gib = KIB.to_gibibytes();
 
@@ -303,7 +291,7 @@ mod tests {
 
     #[test]
     fn auto_converts_to_higher_mebibytes() {
-        const MEB: DataStorageUnit = DataStorageUnit::Mebibyte(1023.0);
+        const MEB: DataStorageUnit = Mebibyte(1023.0);
         let meb_in_gib = MEB.to_gibibytes();
 
         assert_eq!(meb_in_gib.auto_convert(), MEB);
