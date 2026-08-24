@@ -1,6 +1,37 @@
 //! A module for creating and removing ramdisk devices that use the tmpfs filesystem
 pub mod ramdisk_mount;
 
+/// Represents the possible data storage unit. Made for use with the Iced pick list.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum EmptyDataStorageUnit {
+    Byte,
+    Kibibyte,
+    Mebibyte,
+    Gibibyte,
+}
+
+impl EmptyDataStorageUnit {
+    pub fn to_data_storage_unit(self, value: f64) -> DataStorageUnit {
+        match self {
+            EmptyDataStorageUnit::Byte => DataStorageUnit::Byte(value),
+            EmptyDataStorageUnit::Kibibyte => DataStorageUnit::Kibibyte(value),
+            EmptyDataStorageUnit::Mebibyte => DataStorageUnit::Mebibyte(value),
+            EmptyDataStorageUnit::Gibibyte => DataStorageUnit::Gibibyte(value),
+        }
+    }
+}
+
+impl std::fmt::Display for EmptyDataStorageUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            EmptyDataStorageUnit::Byte => "B",
+            EmptyDataStorageUnit::Kibibyte => "KiB",
+            EmptyDataStorageUnit::Mebibyte => "MiB",
+            EmptyDataStorageUnit::Gibibyte => "GiB",
+        })
+    }
+}
+
 /// Represents various data storage units
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DataStorageUnit {

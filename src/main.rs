@@ -1,8 +1,15 @@
 pub mod ramdisk;
 
-use iced::widget::{Button, Column, Container, Row, container, pick_list, text};
-use iced::{Alignment, Length::Fill, Size, application};
+use iced::{
+    Alignment,
+    Length::Fill,
+    Length::FillPortion,
+    Size, application,
+    widget::{Button, Column, Container, Row, container, pick_list, text},
+};
+use iced_aw::{ICED_AW_FONT_BYTES, number_input};
 
+use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit};
 use crate::ramdisk::{MountInfo, ramdisk_mount::RamdiskMount};
 
 #[allow(unused)]
@@ -12,6 +19,8 @@ struct AppState {
     selected_ramdisk_stats: Option<MountInfo>,
     current_page: AppPage,
     status_text: Option<String>,
+    ramdisk_size: f64,
+    ramdisk_unit: EmptyDataStorageUnit,
 }
 
 #[derive(Debug, Clone)]
@@ -20,7 +29,11 @@ enum Message {
     DeviceSelected(RamdiskMount),
     RemoveSelectedDrive,
     DeviceListUpdated,
-    InfoPageDismissed,
+    ResetPage,
+    RamdiskUnitSizeChanged(EmptyDataStorageUnit),
+    RamdiskSizeChanged(f64),
+    OpenNewRamdiskPage,
+    CreateRamdisk(DataStorageUnit),
 }
 
 #[allow(unused)]
@@ -38,6 +51,8 @@ impl AppState {
     fn new() -> Self {
         let ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
         let is_ramdisk_mounts_empty = ramdisk_mounts.is_empty();
+        let ramdisk_size = DataStorageUnit::Mebibyte(1.0);
+
         Self {
             ramdisk_mounts,
             selected_ramdisk: None,
@@ -50,6 +65,8 @@ impl AppState {
                 }
             },
             status_text: None,
+            ramdisk_size: 1.0,
+            ramdisk_unit: EmptyDataStorageUnit::Mebibyte,
         }
     }
 
@@ -81,9 +98,26 @@ impl AppState {
                     },
                 };
             }
-            Message::InfoPageDismissed => {
+            Message::ResetPage => {
                 self.current_page = self.appropriate_page();
                 self.update(Message::DeviceListUpdated);
+            }
+            Message::OpenNewRamdiskPage => self.current_page = AppPage::NewRamdiskDevice,
+            Message::RamdiskUnitSizeChanged(unit) => self.ramdisk_unit = unit,
+            Message::RamdiskSizeChanged(size) => self.ramdisk_size = size,
+            Message::CreateRamdisk(size) => {
+                let ramdisk = RamdiskMount::new("/home/ahmed/ramdisk", size, 1000, 1000); // TODO: Use relative variables instead of hardcoding them.
+                self.current_page = AppPage::Info;
+                self.status_text = match ramdisk {
+                    Ok(_) => {
+                        self.update(Message::DeviceListUpdated);
+                        Some(format!("Successfully created ramdisk with the size {size}"))
+                    },
+                    Err(e) =>  match e.kind() {
+                        std::io::ErrorKind::PermissionDenied => Some("Error: Failed to create ramdisk due to insufficient permissions\nDid you run this program as root?".to_string()),
+                        _ => Some(format!("Error: {}", e.kind()))
+                    }
+                };
             }
         }
     }
@@ -152,7 +186,11 @@ impl AppState {
                 .width(Fill)
                 .align_x(Alignment::Center),
         );
-        no_ramdisks_col = no_ramdisks_col.push(Button::new("Create New Ramdisk").width(Fill));
+        no_ramdisks_col = no_ramdisks_col.push(
+            Button::new("Create New Ramdisk")
+                .width(Fill)
+                .on_press(Message::OpenNewRamdiskPage),
+        );
         no_ramdisks_col = no_ramdisks_col.push(
             Button::new("Check for new Ramdisks")
                 .width(Fill)
@@ -166,19 +204,55 @@ impl AppState {
             info_col = info_col.push(
                 Button::new("Dismiss")
                     .width(Fill)
-                    .on_press(Message::InfoPageDismissed),
+                    .on_press(Message::ResetPage),
             );
         }
+
+        // NewRamdiskDevice page
+        let mut input_row: Row<'_, Message> = Row::new().spacing(5);
+        let empty_data_storage_units = vec![
+            EmptyDataStorageUnit::Kibibyte,
+            EmptyDataStorageUnit::Mebibyte,
+            EmptyDataStorageUnit::Gibibyte,
+        ];
+        let unit_input = pick_list(
+            empty_data_storage_units,
+            Some(self.ramdisk_unit.clone()),
+            |unit| Message::RamdiskUnitSizeChanged(unit),
+        )
+        .width(FillPortion(1));
+        let size_input = number_input(&self.ramdisk_size, 1.0..=1024.0, |size| {
+            Message::RamdiskSizeChanged(size)
+        })
+        .width(FillPortion(3));
+
+        input_row = input_row.push(size_input);
+        input_row = input_row.push(unit_input);
+
+        let mut new_ramdisk_dev_col = Column::new().spacing(spacing);
+        let create_ramdisk_button: Button<'_, Message> = Button::new("Create Ramdisk")
+            .on_press(Message::CreateRamdisk(
+                self.ramdisk_unit.to_data_storage_unit(self.ramdisk_size),
+            ))
+            .width(Fill);
+        let cancel_button: Button<'_, Message> = Button::new("Cancel")
+            .on_press(Message::ResetPage)
+            .width(Fill);
+
+        new_ramdisk_dev_col = new_ramdisk_dev_col.push(input_row);
+        new_ramdisk_dev_col = new_ramdisk_dev_col.push(create_ramdisk_button);
+        new_ramdisk_dev_col = new_ramdisk_dev_col.push(cancel_button);
 
         let sel_ramdisk_page = container(sel_ramdisk_col);
         let no_ramdisks_page = container(no_ramdisks_col);
         let info_page = container(info_col);
+        let new_ramdisk_page = container(new_ramdisk_dev_col);
 
         match self.current_page {
             AppPage::SelectRamdiskDevice => sel_ramdisk_page,
             AppPage::NoRamdiskDevices => no_ramdisks_page,
             AppPage::Info => info_page,
-            _ => container(text("TODO")),
+            AppPage::NewRamdiskDevice => new_ramdisk_page,
         }
         .padding(spacing)
         .align_x(Alignment::Center)
@@ -204,6 +278,7 @@ impl Default for AppState {
 
 fn main() -> iced::Result {
     application(AppState::default, AppState::update, AppState::view)
+        .font(ICED_AW_FONT_BYTES)
         .window_size(Size {
             width: 250_f32,
             height: 250_f32,
