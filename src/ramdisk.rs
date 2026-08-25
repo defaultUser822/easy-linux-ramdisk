@@ -2,7 +2,8 @@
 pub mod data_storage_unit;
 pub mod ramdisk_mount;
 
-use self::data_storage_unit::DataStorageUnit;
+pub use self::data_storage_unit::DataStorageUnit;
+pub use self::ramdisk_mount::RamdiskMount;
 
 /// Represents the possible data storage unit. Made for use with the Iced pick list.
 #[derive(Clone, Copy, Debug, PartialEq)]

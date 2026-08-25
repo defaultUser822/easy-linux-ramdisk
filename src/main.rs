@@ -11,8 +11,7 @@ use iced_aw::{ICED_AW_FONT_BYTES, number_input};
 use nix::unistd::{getegid, geteuid};
 use std::env::var;
 
-use crate::ramdisk::ramdisk_mount::RamdiskMount;
-use crate::ramdisk::{EmptyDataStorageUnit, data_storage_unit::DataStorageUnit};
+use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit, RamdiskMount};
 
 struct AppState {
     ramdisk_mounts: Vec<RamdiskMount>,
