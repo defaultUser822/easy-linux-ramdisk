@@ -12,7 +12,7 @@ use nix::unistd::{getegid, geteuid};
 use std::env::var;
 
 use crate::ramdisk::ramdisk_mount::RamdiskMount;
-use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit};
+use crate::ramdisk::{EmptyDataStorageUnit, data_storage_unit::DataStorageUnit};
 
 struct AppState {
     ramdisk_mounts: Vec<RamdiskMount>,
