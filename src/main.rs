@@ -8,6 +8,8 @@ use iced::{
     widget::{Button, Column, Container, Row, container, pick_list, text},
 };
 use iced_aw::{ICED_AW_FONT_BYTES, number_input};
+use nix::unistd::{getegid, geteuid};
+use std::env::var;
 
 use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit};
 use crate::ramdisk::{MountInfo, ramdisk_mount::RamdiskMount};
@@ -106,7 +108,13 @@ impl AppState {
             Message::RamdiskUnitSizeChanged(unit) => self.ramdisk_unit = unit,
             Message::RamdiskSizeChanged(size) => self.ramdisk_size = size,
             Message::CreateRamdisk(size) => {
-                let ramdisk = RamdiskMount::new("/home/ahmed/ramdisk", size, 1000, 1000); // TODO: Use relative variables instead of hardcoding them.
+                let home_dir = var("HOME").unwrap();
+                let ramdisk = RamdiskMount::new(
+                    format!("{home_dir}/ramdisk").as_str(),
+                    size,
+                    geteuid().as_raw(),
+                    getegid().as_raw(),
+                );
                 self.current_page = AppPage::Info;
                 self.status_text = match ramdisk {
                     Ok(_) => {
