@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 iced = "0.14.0"
 iced_aw = "0.14.1"
-nix = { version="0.31.3", features=["mount", "fs"] }
+nix = { version="0.31.3", features=["mount", "fs", "user"] }
 
 [profile.dev-sccache]
 inherits = "dev"

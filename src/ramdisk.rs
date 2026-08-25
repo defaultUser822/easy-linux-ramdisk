@@ -164,6 +164,7 @@ impl DataStorageUnit {
 mod tests {
     use super::*;
     use crate::ramdisk::{DataStorageUnit::*, ramdisk_mount::RamdiskMount};
+    use nix::unistd::{getegid, geteuid};
     use std::env::var;
 
     const GIB_IN_BYTES: DataStorageUnit = Byte(1024.0 * 1024.0 * 1024.0);
@@ -188,8 +189,8 @@ mod tests {
         let device = RamdiskMount::new(
             format!("{home_dir}/ramdisk2").as_str(),
             Mebibyte(1.0),
-            1000,
-            1000,
+            geteuid().as_raw(),
+            getegid().as_raw(),
         )?;
         device.remove()?;
 
@@ -202,8 +203,8 @@ mod tests {
         let device = RamdiskMount::new(
             format!("{home_dir}/ramdisk2").as_str(),
             Mebibyte(1.0),
-            1000,
-            1000,
+            geteuid().as_raw(),
+            getegid().as_raw(),
         )
         .unwrap();
         let device_stats = device.get_stats().unwrap();
