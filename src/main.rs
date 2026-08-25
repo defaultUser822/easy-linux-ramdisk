@@ -11,14 +11,12 @@ use iced_aw::{ICED_AW_FONT_BYTES, number_input};
 use nix::unistd::{getegid, geteuid};
 use std::env::var;
 
+use crate::ramdisk::ramdisk_mount::RamdiskMount;
 use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit};
-use crate::ramdisk::{MountInfo, ramdisk_mount::RamdiskMount};
 
-#[allow(unused)]
 struct AppState {
     ramdisk_mounts: Vec<RamdiskMount>,
     selected_ramdisk: Option<RamdiskMount>,
-    selected_ramdisk_stats: Option<MountInfo>,
     current_page: AppPage,
     status_text: Option<String>,
     ramdisk_size: f64,
@@ -26,7 +24,6 @@ struct AppState {
 }
 
 #[derive(Debug, Clone)]
-#[allow(unused)]
 enum Message {
     DeviceSelected(RamdiskMount),
     RemoveSelectedDrive,
@@ -38,7 +35,6 @@ enum Message {
     CreateRamdisk(DataStorageUnit),
 }
 
-#[allow(unused)]
 #[derive(PartialEq)]
 enum AppPage {
     Info,
@@ -49,16 +45,13 @@ enum AppPage {
 
 // TODO: Make functions that return widgets with the common settings
 impl AppState {
-    #[allow(unused)]
     fn new() -> Self {
         let ramdisk_mounts = RamdiskMount::from_existing(true).unwrap();
         let is_ramdisk_mounts_empty = ramdisk_mounts.is_empty();
-        let ramdisk_size = DataStorageUnit::Mebibyte(1.0);
 
         Self {
             ramdisk_mounts,
             selected_ramdisk: None,
-            selected_ramdisk_stats: None,
             current_page: {
                 if is_ramdisk_mounts_empty {
                     AppPage::NoRamdiskDevices

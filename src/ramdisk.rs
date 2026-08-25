@@ -45,7 +45,6 @@ pub enum DataStorageUnit {
 }
 
 /// Contains information about a mount
-#[allow(unused)]
 pub struct MountInfo {
     total_space: f64,
     free_space: f64,
