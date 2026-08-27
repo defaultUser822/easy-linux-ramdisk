@@ -2,13 +2,13 @@ pub mod ramdisk;
 
 use iced::{
     Alignment,
-    Length::Fill,
-    Length::FillPortion,
+    Length::{Fill, FillPortion},
     Size, application,
-    widget::{Button, Column, Container, Row, container, pick_list, text},
+    widget::{Button, Column, Container, Row, Text, container, pick_list, text},
 };
 use iced_aw::{ICED_AW_FONT_BYTES, number_input};
 use nix::unistd::{getegid, geteuid};
+use rfd::FileDialog;
 use std::env::var;
 
 use crate::ramdisk::{DataStorageUnit, EmptyDataStorageUnit, RamdiskMount};
@@ -20,6 +20,7 @@ struct AppState {
     status_text: Option<String>,
     ramdisk_size: f64,
     ramdisk_unit: EmptyDataStorageUnit,
+    ramdisk_location: String,
 }
 
 #[derive(Debug, Clone)]
@@ -32,6 +33,7 @@ enum Message {
     RamdiskSizeChanged(f64),
     OpenNewRamdiskPage,
     CreateRamdisk(DataStorageUnit),
+    SelectNewRamdiskLocation,
 }
 
 #[derive(PartialEq)]
@@ -61,6 +63,7 @@ impl AppState {
             status_text: None,
             ramdisk_size: 1.0,
             ramdisk_unit: EmptyDataStorageUnit::Mebibyte,
+            ramdisk_location: format!("{}/ramdisk", var("HOME").unwrap()),
         }
     }
 
@@ -118,6 +121,15 @@ impl AppState {
                         _ => Some(format!("Error: {}", e.kind()))
                     }
                 };
+            }
+            Message::SelectNewRamdiskLocation => {
+                let new_location = FileDialog::new().pick_folder();
+                if let Some(new_path) = new_location {
+                    match new_path.into_os_string().into_string() {
+                        Ok(path) => self.ramdisk_location = path,
+                        Err(_) => {}
+                    }
+                }
             }
         }
     }
@@ -237,6 +249,15 @@ impl AppState {
         input_row = input_row.push(unit_input);
 
         let mut new_ramdisk_dev_col = Column::new().spacing(spacing);
+        let current_folder_text: Text = text(format!(
+            "The new ramdisk device will be created at {}",
+            self.ramdisk_location
+        ))
+        .width(Fill)
+        .align_x(Alignment::Center);
+        let select_folder_button: Button<'_, Message> = Button::new("Choose Folder 🗁")
+            .on_press(Message::SelectNewRamdiskLocation)
+            .width(Fill);
         let create_ramdisk_button: Button<'_, Message> = Button::new("Create Ramdisk")
             .on_press(Message::CreateRamdisk(
                 self.ramdisk_unit.to_data_storage_unit(self.ramdisk_size),
@@ -247,6 +268,8 @@ impl AppState {
             .width(Fill);
 
         new_ramdisk_dev_col = new_ramdisk_dev_col.push(input_row);
+        new_ramdisk_dev_col = new_ramdisk_dev_col.push(current_folder_text);
+        new_ramdisk_dev_col = new_ramdisk_dev_col.push(select_folder_button);
         new_ramdisk_dev_col = new_ramdisk_dev_col.push(create_ramdisk_button);
         new_ramdisk_dev_col = new_ramdisk_dev_col.push(cancel_button);
 
