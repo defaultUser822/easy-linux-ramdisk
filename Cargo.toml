@@ -1,5 +1,5 @@
 [package]
-name = "swift-disk"
+name = "easy-linux-ramdisk"
 version = "0.1.0"
 edition = "2024"
 
