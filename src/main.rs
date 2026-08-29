@@ -103,9 +103,8 @@ impl AppState {
             Message::RamdiskUnitSizeChanged(unit) => self.ramdisk_unit = unit,
             Message::RamdiskSizeChanged(size) => self.ramdisk_size = size,
             Message::CreateRamdisk(size) => {
-                let home_dir = var("HOME").unwrap();
                 let ramdisk = RamdiskMount::new(
-                    format!("{home_dir}/ramdisk").as_str(),
+                    &self.ramdisk_location,
                     size,
                     geteuid().as_raw(),
                     getegid().as_raw(),
