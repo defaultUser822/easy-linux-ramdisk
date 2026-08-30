@@ -123,11 +123,10 @@ impl AppState {
             }
             Message::SelectNewRamdiskLocation => {
                 let new_location = FileDialog::new().pick_folder();
-                if let Some(new_path) = new_location {
-                    match new_path.into_os_string().into_string() {
-                        Ok(path) => self.ramdisk_location = path,
-                        Err(_) => {}
-                    }
+                if let Some(new_path) = new_location
+                    && let Ok(path) = new_path.into_os_string().into_string()
+                {
+                    self.ramdisk_location = path;
                 }
             }
         }
@@ -235,8 +234,8 @@ impl AppState {
         ];
         let unit_input = pick_list(
             empty_data_storage_units,
-            Some(self.ramdisk_unit.clone()),
-            |unit| Message::RamdiskUnitSizeChanged(unit),
+            Some(self.ramdisk_unit),
+            Message::RamdiskUnitSizeChanged,
         )
         .width(FillPortion(1));
         let size_input = number_input(&self.ramdisk_size, 1.0..=1024.0, |size| {
@@ -272,6 +271,7 @@ impl AppState {
         new_ramdisk_dev_col = new_ramdisk_dev_col.push(create_ramdisk_button);
         new_ramdisk_dev_col = new_ramdisk_dev_col.push(cancel_button);
 
+        // Code shared by all pages
         let sel_ramdisk_page = container(sel_ramdisk_col);
         let no_ramdisks_page = container(no_ramdisks_col);
         let info_page = container(info_col);
