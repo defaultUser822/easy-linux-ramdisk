@@ -312,6 +312,6 @@ fn main() -> iced::Result {
             width: 300_f32,
             height: 400_f32,
         })
-        .title("TMPFS GUI")
+        .title("Easy Linux Ramdisk")
         .run()
 }
