@@ -39,8 +39,8 @@ For getting the existing mount stats, I just read the `/proc/mounts` file, which
 I used the `statvfs()` function from the `nix` crate. I multiplied the fragment size, which is how big each block of the mount is in bytes, by the number of blocks to get the total space and then by the number of the number of free storage to get the free space.
 
 ### How to use this tool
-1. Download the binary from the releases
-2. Make the file executable
+1. Compile from source code using `cargo build --release`
+2. Make the binary file obtained from step 1 exectuable.
 3. Fix the permissions using this command ```sudo setcap 'cap_sys_admin=ep' ./easy-linux-ramdisk```
 4. Click "Create New Ramdisk"
 5. Choose the folder where you want the ramdisk to be created
