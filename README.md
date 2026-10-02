@@ -13,6 +13,7 @@
 - [Tools used](#tools-used)
 - [Technical decisions](#technical-decisions)
 - [AI and external code snippet usage disclosure](#ai-and-external-code-snippet-usage-disclosure)
+- [License](#license)
   
 
 ### Overview
@@ -87,3 +88,6 @@ I used some code for setting up the GUI framework from a previous project I had 
 I also read some examples from the GUI framework when I was stuck. No code was directly used.
 I also used 2 lines of code from an LLM, which are explicitly outlined in the comments.
 I also used it for researching ideas and explaining conecpts of the Linux kernel.
+
+### License
+This project is licensed under the GPL-v3 license.
